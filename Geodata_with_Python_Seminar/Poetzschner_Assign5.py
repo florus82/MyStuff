@@ -9,7 +9,7 @@ import random
 #     sref.ImportFromEPSG(epsg)
 #     # open the shapefile
 #     ds = ogr.Open(file, 1)
-#     driv = ogr.GetDriverByName('ESRI Shapefile')  # will select the driver foir our shp-file creation.
+#     driv = ogr.GetDriverByName('ESRI Shapefile')  # will select the driver for our shp-file creation.
 #
 #     shapeStor = driv.CreateDataSource('/'.join(file.split('/')[:-1]))
 #     # get first layer (assuming ESRI is standard) & and create empty output layer with spatial reference plus object type

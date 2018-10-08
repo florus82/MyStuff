@@ -8,8 +8,6 @@ import ogr
 import os
 # ####################################### SET TIME-COUNT ###################################################### #
 starttime = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
-
-
 print("--------------------------------------------------------")
 print("Starting process, time: " + starttime)
 print("")

@@ -10,8 +10,8 @@ from FloppyToolZ.Funci import *
 # # ####################################### FILES AND FOLDER-PATHS ############################################## #
 
 #files = getFilelist('/home/florian/MSc/GEE/Landsat_Test','shp')
-files = ['/home/florian/MSc/GEE/Landsat_Test3/Control_reproj_4326.shp']
-storpath = '/home/florian/MSc/GEE/Landsat_Test3/'
+files = ['/home/florus/MSc/GEE/Landsat_Test3/Shift_reproj_4326.shp']
+storpath = '/home/florus/MSc/GEE/Landsat_Test3/extracts/shift/'
 #
 # # ####################################### SEARCH PARAMETERS ################################################### #
 #
@@ -104,6 +104,11 @@ def Retrieve_SR01_fromGEE_Point(geometry, startDate, endDate):
     return values_all
 # ####################################### COLLECT THE VALUES PER POINT ######################################## #
 
+dum = 2
+a = np.arange(53400)
+b = np.split(a,30)
+bb = b[dum:]
+
 for file in files:
     shp = ogr.Open(file)
 
@@ -113,51 +118,55 @@ for file in files:
     coord = lyr.GetSpatialRef()
     nFeat = lyr.GetFeatureCount()
 
-    #while feat:
-    for feat in tqdm(lyr):
-    # Extract ID-Info from SHP-file and other informations
-        Pid = feat.GetField('POINT_ID')
-        #Bid = feat.GetField('Block_ID')
+    for c, i in enumerate(bb):
+        ee.Initialize()
+        print(i)
+        for j in i:
+            print(j)
+            feat = lyr.GetFeature(j)
+            # Extract ID-Info from SHP-file and other informations
+            Pid = feat.GetField('POINT_ID')
+            #Bid = feat.GetField('Block_ID')
 
-        #print("Processing Point ID " + str(Pid))
-    # Now get the geometry and do stuff
-        geom = feat.GetGeometryRef()
-    # Now extract the individual data from the collections based on the definitions above
-        vals = Retrieve_SR01_fromGEE_Point(geometry=geom, startDate=startDate, endDate=endDate)
-    # Add to the header-line the Variable-Name Point-ID, and add it to each element as well
-        vals[0].append("Point-ID")
-        for i in range(1,len(vals)):
-            vals[i].append(Pid)
+            #print("Processing Point ID " + str(Pid))
+            # Now get the geometry and do stuff
+            geom = feat.GetGeometryRef()
+            # Now extract the individual data from the collections based on the definitions above
+            vals = Retrieve_SR01_fromGEE_Point(geometry=geom, startDate=startDate, endDate=endDate)
+            # Add to the header-line the Variable-Name Point-ID, and add it to each element as well
+            vals[0].append("Point-ID")
+            for i in range(1,len(vals)):
+                vals[i].append(Pid)
 
-        # vals[0].append("Block-ID")
-        # for i in range(1, len(vals)):
-        #     vals[i].append(Bid)
-    # Remove right away the masked values, and some remnants from the sceneID
-        val_reduced = []
-        for val in vals:
-            if not None in val:
-            #    val[0] = '-'.join(val[0].split('_')[1:])
-                sceneID = val[0]
-                p1 = sceneID.find("L")
-                sceneID = sceneID[p1:]
-                val[0] = sceneID
-                val_reduced.append(val)
-    # Append to output then get next feature
+            # vals[0].append("Block-ID")
+            # for i in range(1, len(vals)):
+            #     vals[i].append(Bid)
+        # Remove right away the masked values, and some remnants from the sceneID
+            val_reduced = []
+            for val in vals:
+                if not None in val:
+                #    val[0] = '-'.join(val[0].split('_')[1:])
+                    sceneID = val[0]
+                    p1 = sceneID.find("L")
+                    sceneID = sceneID[p1:]
+                    val[0] = sceneID
+                    val_reduced.append(val)
+        # Append to output then get next feature
 
 
-        valueList.append(val_reduced)
-        #feat = lyr.GetNextFeature()
-    # ##################################### WRITE OUTPUT ######################################################## #
-
-    with open(storpath + file.split('/')[-1].split('.')[0] + '_LANDSAT_TEST_Extracts.csv', "w") as theFile:
-        csv.register_dialect("custom", delimiter=",", skipinitialspace=True, lineterminator='\n')
-        writer = csv.writer(theFile, dialect="custom")
-        # Write the complete set of values (incl. the header) of the first entry
-        for element in valueList[0]:
-            writer.writerow(element)
-        valueList.pop(0)
-        # Now write the remaining entries, always pop the header
-        for element in valueList:
-            element.pop(0)
-            for row in element:
-                writer.writerow(row)
+            valueList.append(val_reduced)
+            #feat = lyr.GetNextFeature()
+        # ##################################### WRITE OUTPUT ######################################################## #
+        print('write away {} extract'.format(c))
+        with open(storpath + file.split('/')[-1].split('.')[0] + '_LANDSAT_TEST_Extracts' + str(c+dum) + '.csv', "w") as theFile:
+            csv.register_dialect("custom", delimiter=",", skipinitialspace=True, lineterminator='\n')
+            writer = csv.writer(theFile, dialect="custom")
+            # Write the complete set of values (incl. the header) of the first entry
+            for element in valueList[0]:
+                writer.writerow(element)
+            valueList.pop(0)
+            # Now write the remaining entries, always pop the header
+            for element in valueList:
+                element.pop(0)
+                for row in element:
+                    writer.writerow(row)
