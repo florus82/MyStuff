@@ -4,47 +4,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.externals import joblib
+from sklearn import preprocessing
 from sklearn import metrics
-
-# #### create master file list for pred/resp sets
-p1 = '/home/florus/'
-# p2 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/' # Geoserv2
-
-path_ns  = p1 + 'MSc/Modelling/not_smooth/subsets'
-path_sm  = p1 + 'MSc/Modelling/smooth/subsets'
-path_sm5 = p1 + 'MSc/Modelling/smooth5/subsets'
-
-paths = [path_ns, path_sm, path_sm5]
-
-fil   = [getFilelist(path, '.csv') for path in paths]
-filp  = [f for fi in fil for f in fi]
-
-# #### read in column names for different pred-sets (seasPAr, seasFit, seasStat)
-c_fil  = getFilelist('/home/florus/MSc/Modelling/colnames', '.csv')
-c_seasPar  = pd.read_csv(c_fil[2])
-c_seasFit  = pd.read_csv(c_fil[1])
-c_seasStat = pd.read_csv(c_fil[0])
-
-c_seasPar  = c_seasPar[c_seasPar.columns.values[0]].values.tolist()
-c_seasFit  = c_seasFit[c_seasFit.columns.values[0]].values.tolist()
-c_seasStat = c_seasStat[c_seasStat.columns.values[0]].values.tolist()
-
-# #### read in the data-blocks and seperate into train & test
-
-dat        = pd.read_csv(filp[0])
-
-# response
-y_dat      = dat['Mean_AGB']
-
-# pred-sets
-x_seasPar  = dat[c_seasPar]
-x_seasFit  = dat[c_seasFit]
-x_seasStat = dat[c_seasStat]
-
-x_seasPar_Train, x_seasPar_Test, y_seasPar_Train, y_seasPar_Test     = train_test_split(x_seasPar, y_dat, random_state= 42, test_size = 0.3)
-x_seasFit_Train, x_seasFit_Test, y_seasFit_Train, y_seasFit_Test     = train_test_split(x_seasFit, y_dat, random_state= 42, test_size = 0.3)
-x_seasStat_Train, x_seasStat_Test, y_seasStat_Train, y_seasStat_Test = train_test_split(x_seasStat, y_dat, random_state= 42, test_size = 0.3)
-
 
 # #### funcitons needed
 # grid search
@@ -54,8 +15,7 @@ def Model(yValues, predictors, CVout, nCores):
                   'min_samples_leaf': [3, 5, 9, 17],
                   'max_features': [1.0, 0.5, 0.3, 0.1]}
     est = GradientBoostingRegressor(n_estimators=7500)
-    gs_cv = GridSearchCV(est, param_grid, cv=5, refit=True, n_jobs=nCores) \
-        .fit(predictors, yValues)
+    gs_cv = GridSearchCV(est, param_grid, cv=5, refit=True, n_jobs=nCores).fit(predictors, yValues)
     # Write outputs to disk and return elements from function
     joblib.dump(gs_cv, CVout)
     return (gs_cv)
@@ -85,9 +45,65 @@ def Model(yValues, predictors, CVout, nCores):
 
 
 
+
+# #### create master file list for pred/resp sets
+p1 = '/home/florus/'
+# p2 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/' # Geoserv2
+
+path_ns  = p1 + 'MSc/Modelling/not_smooth/subsets'
+path_sm  = p1 + 'MSc/Modelling/smooth/subsets'
+path_sm5 = p1 + 'MSc/Modelling/smooth5/subsets'
+
+paths = [path_ns, path_sm, path_sm5]
+
+fil   = [getFilelist(path, '.csv') for path in paths]
+filp  = [f for fi in fil for f in fi]
+
+# #### read in column names for different pred-sets (seasPAr, seasFit, seasStat)
+c_fil  = getFilelist('/home/florus/MSc/Modelling/colnames', '.csv')
+c_seasPar  = pd.read_csv(c_fil[2])
+c_seasFit  = pd.read_csv(c_fil[1])
+c_seasStat = pd.read_csv(c_fil[0])
+
+c_seasPar  = c_seasPar[c_seasPar.columns.values[0]].values.tolist()
+c_seasFit  = c_seasFit[c_seasFit.columns.values[0]].values.tolist()
+c_seasStat = c_seasStat[c_seasStat.columns.values[0]].values.tolist()
+
+c_seasPar.append('Mean_AGB')
+c_seasFit.append('Mean_AGB')
+c_seasStat.append('Mean_AGB')
+
+# exlcude GreenUP & Maturity due to too many NaNs
+kill = ['NDVI_GreenUp', 'EVI_GreenUp','NBR_GreenUp',
+        'NDVI_Maturity', 'EVI_Maturity', 'NBR_Maturity']
+
+for ki in kill:
+    c_seasPar.remove(ki)
+
+# #### read in the data-blocks and seperate into train & test
+dat    = pd.read_csv(filp[0])
+
+a = pd.isnull(dat).any(1).nonzero()[0]
+dat.loc[-a]
+
+# pred/resp-sets
+d_seasPar  = dat[c_seasPar].dropna()
+d_seasFit  = dat[c_seasFit].dropna()
+d_seasStat = dat[c_seasStat].dropna()
+
+dat[np.where((d_seasPar.columns.values=='Mean_AGB') == False)[0][0]]
+dd = np.array(dat)
+dd[1,1]
+x_seasPar_Train, x_seasPar_Test, y_seasPar_Train, y_seasPar_Test     = train_test_split(x_seasPar, y_dat, random_state= 42, test_size = 0.3)
+x_seasFit_Train, x_seasFit_Test, y_seasFit_Train, y_seasFit_Test     = train_test_split(x_seasFit, y_dat, random_state= 42, test_size = 0.3)
+x_seasStat_Train, x_seasStat_Test, y_seasStat_Train, y_seasStat_Test = train_test_split(x_seasStat, y_dat, random_state= 42, test_size = 0.3)
+
+aa = preprocessing.scale(x_seasPar_Train)
+
+
 # ##### run gbr once
 # if __name__ == '__main__': # only needed for stupid windows
-a = Model(y_seasFit_Train, x_seasFit_Train, ('/home/florus/MSc/Modelling/', 2)
+a = Model(y_seasPar_Train, x_seasFit_Train, '/home/florus/MSc/Modelling/a.sav', 2)
 # make overview table
 ### run gbr 1000 times
 
