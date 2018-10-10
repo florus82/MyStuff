@@ -14,7 +14,7 @@ def Model(yValues, predictors, CVout, nCores):
                   'max_depth': [4, 6],
                   'min_samples_leaf': [3, 5, 9, 17],
                   'max_features': [1.0, 0.5, 0.3, 0.1]}
-    est = GradientBoostingRegressor(n_estimators=7500)
+    est = GradientBoostingRegressor(n_estimators=7)
     gs_cv = GridSearchCV(est, param_grid, cv=5, refit=True, n_jobs=nCores).fit(predictors, yValues)
     # Write outputs to disk and return elements from function
     joblib.dump(gs_cv, CVout)
@@ -82,28 +82,28 @@ for ki in kill:
 
 # #### read in the data-blocks and seperate into train & test
 dat    = pd.read_csv(filp[0])
-
-a = pd.isnull(dat).any(1).nonzero()[0]
-dat.loc[-a]
-
+# a = pd.isnull(dat).any(1).nonzero()[0]
 # pred/resp-sets
 d_seasPar  = dat[c_seasPar].dropna()
 d_seasFit  = dat[c_seasFit].dropna()
 d_seasStat = dat[c_seasStat].dropna()
 
-dat[np.where((d_seasPar.columns.values=='Mean_AGB') == False)[0][0]]
-dd = np.array(dat)
-dd[1,1]
-x_seasPar_Train, x_seasPar_Test, y_seasPar_Train, y_seasPar_Test     = train_test_split(x_seasPar, y_dat, random_state= 42, test_size = 0.3)
-x_seasFit_Train, x_seasFit_Test, y_seasFit_Train, y_seasFit_Test     = train_test_split(x_seasFit, y_dat, random_state= 42, test_size = 0.3)
-x_seasStat_Train, x_seasStat_Test, y_seasStat_Train, y_seasStat_Test = train_test_split(x_seasStat, y_dat, random_state= 42, test_size = 0.3)
+x_seasPar_Train, x_seasPar_Test, y_seasPar_Train, y_seasPar_Test     = \
+    train_test_split(d_seasPar.iloc[:, np.where((d_seasPar.columns.values=='Mean_AGB') == False)[0]], \
+                     d_seasPar['Mean_AGB'], random_state= 42, test_size = 0.3)
+x_seasFit_Train, x_seasFit_Test, y_seasFit_Train, y_seasFit_Test     = \
+    train_test_split(d_seasFit.iloc[:, np.where((d_seasFit.columns.values=='Mean_AGB') == False)[0]], \
+                     d_seasFit['Mean_AGB'], random_state= 42, test_size = 0.3)
+x_seasStat_Train, x_seasStat_Test, y_seasStat_Train, y_seasStat_Test = \
+    train_test_split(d_seasStat.iloc[:, np.where((d_seasStat.columns.values=='Mean_AGB') == False)[0]], \
+                     d_seasStat['Mean_AGB'], random_state= 42, test_size = 0.3)
 
-aa = preprocessing.scale(x_seasPar_Train)
+
 
 
 # ##### run gbr once
 # if __name__ == '__main__': # only needed for stupid windows
-a = Model(y_seasPar_Train, x_seasFit_Train, '/home/florus/MSc/Modelling/a.sav', 2)
+a = Model(y_seasPar_Train, x_seasPar_Train, '/home/florus/MSc/Modelling/runs/a.sav', 2)
 # make overview table
 ### run gbr 1000 times
 
