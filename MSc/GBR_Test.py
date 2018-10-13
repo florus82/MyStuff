@@ -102,7 +102,7 @@ x_seasStat_Train, x_seasStat_Test, y_seasStat_Train, y_seasStat_Test = \
 
 
 # ##### run gbr once
-# if __name__ == '__main__': # only needed for stupid windows
+# if __name__ == '__main__':
 a = Model(y_seasPar_Train, x_seasPar_Train, '/home/florus/MSc/Modelling/runs/a.sav', 2)
 # make overview table
 ### run gbr 1000 times
