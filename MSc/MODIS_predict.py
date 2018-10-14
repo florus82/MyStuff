@@ -4,7 +4,6 @@ bands  = ['NDVI', 'EVI', 'NIR reflectance', 'MIR reflectance', 'pixel reliabilit
 NaList = [-3000, -1000, -3000, -1000, 65535, 255]
 VI_oki = [2112, 4160, 6208]
 
-
 mask1  = gdal.Open('/home/florus/MSc/RS_Data/MODIS/rasterized/Mod1.tiff')
 mask1  = mask1.GetRasterBand(1).ReadAsArray()
 mask1[mask1 == 0] = np.nan
