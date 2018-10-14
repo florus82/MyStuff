@@ -1,11 +1,6 @@
 from FloppyToolZ.Funci import *
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import uncertainties as unc
 from scipy import optimize
-import sympy as sp
-from scipy.misc import derivative
 
 # Define the pheno function, the coefficient confidence function and set seed
 def funci(x, p1, p2, p3, p4, p5, p6):
