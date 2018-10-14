@@ -21,4 +21,3 @@ Band = modis.GetRasterBand(1)
 Band.SetNoDataValue(0)
 gdal.RasterizeLayer(out_ds, [1], Chac_lyr, burn_values=[1])
 del out_ds
-
