@@ -70,8 +70,10 @@ def ModelRunner():
             pars['Index'].append(row['Index'])
             pars['BM'].append(row['BM'])
 
-            SoS == 1
-            while SoS == 1 or SoS == 364:
+            SeasMax = 0
+            SeasMin = 0
+            while SeasMax <=0 or SeasMax > 0.9 or SeasMin <= 0 or SeasMin > 0.8\
+                    and SeasMax != SeasMin:
                 p1 = np.random.random_sample() * (row['p1u'] - row['p1l']) + row['p1l']
                 p2 = np.random.random_sample() * (row['p2u'] - row['p2l']) + row['p2l']
                 p3 = np.random.random_sample() * (row['p3u'] - row['p3l']) + row['p3l']
@@ -83,9 +85,13 @@ def ModelRunner():
 
                 dev1 = np.diff(pred)
                 SoS = np.argmax(dev1) + 1
-            EoS = np.argmin(dev1) + 1
-            SeasMax = round(max(pred), 2)
-            SeasMin = round(min(pred), 2)
+                EoS = np.argmin(dev1) + 1
+                SeasMax = round(max(pred), 2)
+                SeasMin = round(min(pred), 2)
+                print(index)
+                print('min = ' + str(SeasMin))
+                print('max = ' + str(SeasMax))
+                print('')
             SeasInt = round(np.trapz(funci(np.arange(SoS, EoS + 1, 1),
                                         p1, p2, p3, p4, p5, p6)), 2)
             SeasLen = EoS - SoS
@@ -105,8 +111,10 @@ def ModelRunner():
             pars['p5'].append(p5)
             pars['p6'].append(p6)
 
+
+
         dati = pd.DataFrame(data=pars)
-        dati.to_csv(path1 + 'MSc/Modelling/runs100/para/iteration_base' + '_run_' +
+        dati.to_csv(path1 + 'MSc/Modelling/runs101/para/iteration_base' + '_run_' +
                     str(counti + 1) + '.csv',
                     sep=',', index = False)
 
@@ -155,7 +163,7 @@ def ModelRunner():
             block['BM'], random_state=42, test_size=0.3)
 
         # set model
-        stor = path1 + 'MSc/Modelling/runs100/sav/'+ 'run_' + str(counti +1) + '.sav'
+        stor = path1 + 'MSc/Modelling/runs101/sav/'+ 'run_' + str(counti +1) + '.sav'
         ModPerfor(Model(y_Train, x_Train, stor, 25),
                   y_Test, x_Test)
 
@@ -178,4 +186,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(path1 + 'MSc/Modelling/runs100/AllRuns.csv', sep=',', index=False)# then, group by cell & index and then drop growseas and growfit
+df.to_csv(path1 + 'MSc/Modelling/runs101/AllRuns.csv', sep=',', index=False)# then, group by cell & index and then drop growseas and growfit
