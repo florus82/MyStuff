@@ -72,12 +72,12 @@ def ModelRunner():
 
             SoS == 1
             while SoS == 1 or SoS == 364:
-                p1 = np.random.sample() * (row['p1u'] - row['p1l']) + row['p1l']
-                p2 = np.random.sample() * (row['p2u'] - row['p2l']) + row['p2l']
-                p3 = np.random.sample() * (row['p3u'] - row['p3l']) + row['p3l']
-                p4 = np.random.sample() * (row['p4u'] - row['p4l']) + row['p4l']
-                p5 = np.random.sample() * (row['p5u'] - row['p5l']) + row['p5l']
-                p6 = np.random.sample() * (row['p6u'] - row['p6l']) + row['p6l']
+                p1 = np.random.random_sample() * (row['p1u'] - row['p1l']) + row['p1l']
+                p2 = np.random.random_sample() * (row['p2u'] - row['p2l']) + row['p2l']
+                p3 = np.random.random_sample() * (row['p3u'] - row['p3l']) + row['p3l']
+                p4 = np.random.random_sample() * (row['p4u'] - row['p4l']) + row['p4l']
+                p5 = np.random.random_sample() * (row['p5u'] - row['p5l']) + row['p5l']
+                p6 = np.random.random_sample() * (row['p6u'] - row['p6l']) + row['p6l']
 
                 pred = funci(dummy, p1, p2, p3, p4, p5, p6)
 
