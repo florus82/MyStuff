@@ -2,7 +2,7 @@ from FloppyToolZ.Funci import *
 from joblib import Parallel, delayed
 import numpy as np
 
-files   = getFilelist('/home/florian/Geodata_with_Python/session7/Assignment06_data','tif')
+files   = getFilelist('/home/florus/Geodata_with_Python/session7/Assignment06_data','tif')
 files2  = [[i] for i in files]   # movinWinni wants lists....
 names   = [[150], [300], [450]]
 outpath = '/home/florian/Geodata_with_Python/session11/output/'
