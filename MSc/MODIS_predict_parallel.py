@@ -1,10 +1,11 @@
 from FloppyToolZ.MasterFuncs import *
+import time
 
 # set working station
-path1 = '/home/florus/MSc/'
-# path1 = 'Z:/_students_data_exchange/FP_FP/'
-path2 = '/home/florus/Seafile/myLibrary/MSc/'
-# path2 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/'
+# path1 = '/home/florus/MSc/'
+path1 = 'Z:/_students_data_exchange/FP_FP/'
+# path2 = '/home/florus/Seafile/myLibrary/MSc/'
+path2 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/'
 
 # load models for lowest,median and highest RMSE) - should all be part of apply_along_axis
 iter100 = pd.read_csv(path2 + 'Modelling/runs100/AllRuns.csv')
@@ -40,7 +41,7 @@ mask  = mas.GetRasterBand(1).ReadAsArray(reader[0], reader[1], reader[2], reader
 mask[mask == 0] = np.nan
 # ################################ create 48 sub-tiles of this subset --> number of sub-tiles == number of jobs
 
-no_tiles = 24**2
+no_tiles = 5**2
 
 keys = ['x_off', 'y_off', 'x_count', 'y_count']
 
@@ -75,13 +76,13 @@ Tile_outPath  = []
 
 # tileblock-list
 for tile_iter in range(no_tiles):
-    # tile_iter = 0
+    tile_iter = 0
     tile_NDVI_conti = []
     tile_EVI_conti  = []
     tile_NBR_conti  = []
     tile_timeline   = []
     tile_dummy      = []
-
+    print(tile_iter)
     for tims in timeframe:
         tims = timeframe[0]
         print('subsetting MODIS files for periods ' + str(tims[0]) + ' to ' + str(tims[1]))
@@ -95,6 +96,7 @@ for tile_iter in range(no_tiles):
         tile_dummy.append(dummy)
 
         for iter3, scene in enumerate(hdf):
+            # scene = hdf[0]
             print(iter3)
             info = gdal.Open(scene)
             sdsdict = info.GetMetadata('SUBDATASETS')
@@ -113,27 +115,27 @@ for tile_iter in range(no_tiles):
             # load NDVI, EVI, calc NBR and store them int individual into tile-based lists
             ndvi = gdal.Open(select[2])
             ndviB = ndvi.GetRasterBand(1)
-            tile_NDVI_conti.append(ndviB.ReadAsArray((subtil['x_off'][tile_iter], subtil['y_off'][tile_iter],
-                                                         subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask)/10000)
+            tile_NDVI_conti.append((ndviB.ReadAsArray(subtil['x_off'][tile_iter], subtil['y_off'][tile_iter],
+                    subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask)/10000)
 
             evi = gdal.Open(select[0])
             eviB = evi.GetRasterBand(1)
-            tile_EVI_conti.append(eviB.ReadAsArray((subtil['x_off'][tile_iter], subtil['y_off'][tile_iter],
-                                                         subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask)/10000)
+            tile_EVI_conti.append((eviB.ReadAsArray(subtil['x_off'][tile_iter], subtil['y_off'][tile_iter],
+                    subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask)/10000)
 
             mir = gdal.Open(select[1])
             mirB = mir.GetRasterBand(1)
             mirA = mirB.ReadAsArray(subtil['x_off'][tile_iter], subtil['y_off'][tile_iter],
-                                                         subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask
+                                subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask
             nir = gdal.Open(select[3])
             nirB = nir.GetRasterBand(1)
             nirA = nirB.ReadAsArray(subtil['x_off'][tile_iter], subtil['y_off'][tile_iter],
-                                                         subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask
+                                subtil['x_count'][tile_iter], subtil['y_count'][tile_iter]) * powerMask
             tile_NBR_conti.append((nirA - mirA) / (nirA + mirA))
 
     # dump all VI-timeseries dfs tile-wise in the list
     VI_conti = tile_NDVI_conti + tile_EVI_conti + tile_NBR_conti
-    Tile_job.append(np.stack(VI, axis = 2))
+    Tile_job.append(np.stack(VI_conti, axis = 2))
     del tile_NDVI_conti, tile_EVI_conti, tile_NBR_conti
 
     # dump the dummy (for prediction) and timeline (for training and length of images per timeframe) lists in the tile-list
@@ -145,3 +147,27 @@ for tile_iter in range(no_tiles):
                         str(subtil['x_off'][tile_iter] + subtil['x_count'][tile_iter]) +\
                         '__Y_' +str(subtil['y_off'][tile_iter]) + '_' + str(subtil['y_off'][tile_iter] + subtil['y_count'][tile_iter]) +'.sav')
 
+
+
+
+# ############################ create joblist
+jobs = [[Tile_job[divi], PixelBreaker_BoneStorm, Tile_Timeline[divi], Tile_dummy[divi],\
+         Tile_outPath[divi]] for divi in range(no_tiles)]
+
+if __name__ == '__main__':
+# ####################################### SET TIME COUNT ###################################################### #
+    starttime = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
+    print("--------------------------------------------------------")
+    print("Starting process, time:" +  starttime)
+    print("")
+
+
+    Parallel(n_jobs=25)(delayed(PixelSmasher())(i[0], i[1], i[2], i[3], i[4]) for i in jobs)
+
+    print("")
+    endtime = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
+    print("--------------------------------------------------------")
+    print("--------------------------------------------------------")
+    print("start: " + starttime)
+    print("end: " + endtime)
+    print("")
