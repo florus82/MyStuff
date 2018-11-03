@@ -43,12 +43,12 @@ def ModPerfor(cv_results, yData, xData):
 
 
 # #### create master file list for pred/resp sets
-p1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/'
-#p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/' # Geoserv2
+# p1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/'
+p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/' # Geoserv2
 
-path_ns  = p1 + 'not_smooth/subsets'
-path_sm  = p1 + 'smooth/subsets'
-path_sm5 = p1 + 'smooth5/subsets'
+path_ns  = p1 + 'data_junks_from_R/not_smooth/subsets'
+path_sm  = p1 + 'data_junks_from_R/smooth/subsets'
+path_sm5 = p1 + 'data_junks_from_R/smooth5/subsets'
 
 paths = [path_ns, path_sm, path_sm5]
 
@@ -56,7 +56,8 @@ fil   = [getFilelist(path, '.csv') for path in paths]
 filp  = [f for fi in fil for f in fi]
 
 # #### read in column names for different pred-sets (seasPAr, seasFit, seasStat)
-p2 = '/home/florus/Seafile/myLibrary/MSc/Modelling/All_VIs/'
+#p2 = '/home/florus/Seafile/myLibrary/MSc/Modelling/All_VIs/'
+p2 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/All_VIs/'
 c_fil  = getFilelist(p2 + 'colnames', '.csv')
 c_fil.sort()
 c_seasPar  = pd.read_csv(c_fil[1])
@@ -131,6 +132,7 @@ par_names_NDVI = ['SeasPar_NDVI', 'SeasStats_NDVI', 'SeasParStats_NDVI']
 par_names_EVI  = ['SeasPar_EVI', 'SeasStats_EVI', 'SeasParStats_EVI']
 par_names_NBR  = ['SeasPar_NBR', 'SeasStats_NBR', 'SeasParStats_NBR']
 
+
 # dummy model for save parallel
 def ModelRun():
     # iterate over different parameter versions
@@ -156,10 +158,11 @@ def ModelRun():
             res['ParVers'].append(pV.split('/')[-1].split('.')[0])
             res['ParSet'].append(par_names[i])
 
-            stor = p1 + 'MSc/Modelling/runs/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
-            ModPerfor(Model(y_Train, x_Train, stor, 25),
+            stor = p1 + '/Modelling/runs/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
+            ModPerfor(Model(y_Train, x_Train, stor, 24),
                       y_Test, x_Test)
-
+            print(pV.split('/')[-1].split('.')[0])
+            print(par_names[i])
             print(n)
 
 
@@ -170,6 +173,7 @@ if __name__ == '__main__':
     print("--------------------------------------------------------")
     print("Starting process, time: " + starttime)
     print("")
+
     # run model and store performances in results-container
     ModelRun()
 
@@ -182,4 +186,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(p1 + 'MSc/Modelling/runs/AllRuns.csv', sep=',', index=False)
+df.to_csv(p1 + 'Modelling/runs/AllRuns.csv', sep=',', index=False)
