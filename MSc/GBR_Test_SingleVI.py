@@ -44,7 +44,8 @@ def ModPerfor(cv_results, yData, xData):
 
 # #### create master file list for pred/resp sets
 # p1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/'
-p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/' # Geoserv2
+# p1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/' # Geoserv2
+p1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/SINGLE_VIs/'
 
 path_ns  = p1 + 'data_junks_from_R/not_smooth/subsets'
 path_sm  = p1 + 'data_junks_from_R/smooth/subsets'
@@ -57,7 +58,7 @@ filp  = [f for fi in fil for f in fi]
 
 # #### read in column names for different pred-sets (seasPAr, seasFit, seasStat)
 #p2 = '/home/florus/Seafile/myLibrary/MSc/Modelling/All_VIs/'
-p2 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/All_VIs/'
+p2 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/All_VIs/'
 c_fil  = getFilelist(p2 + 'colnames', '.csv')
 c_fil.sort()
 c_seasPar  = pd.read_csv(c_fil[1])
@@ -104,21 +105,21 @@ c_seasParStat_NBR.append('Mean_AGB')
 killNDVI = ['NDVI_GreenUp', 'NDVI_Maturity']
 killEVI  = ['EVI_GreenUp', 'EVI_Maturity']
 killNBR  = ['NBR_GreenUp', 'NBR_Maturity']
-
-for ki in killNDVI:
-    c_seasPar_NDVI.remove(ki)
-    c_seasParStat_NDVI.remove(ki)
-for ki in killEVI:
-    c_seasPar_EVI.remove(ki)
-    c_seasParStat_EVI.remove(ki)
-for ki in killNBR:
-    c_seasPar_NBR.remove(ki)
-    c_seasParStat_NBR.remove(ki)
+#
+# for ki in killNDVI:
+#     c_seasPar_NDVI.remove(ki)
+#     c_seasParStat_NDVI.remove(ki)
+# for ki in killEVI:
+#     c_seasPar_EVI.remove(ki)
+#     c_seasParStat_EVI.remove(ki)
+# for ki in killNBR:
+#     c_seasPar_NBR.remove(ki)
+#     c_seasParStat_NBR.remove(ki)
 
 # #### read in the data-blocks and seperate into train & test
 
 # build result container
-keys = ['ParVers', 'ParSet', 'r2', 'mse', 'rmse', 'y_true', 'y_pred', 'max_depth', 'learning_rate', 'min_samples_leaf', 'max_features']
+keys = ['ParVers', 'ParSet', 'r2', 'mse', 'rmse', 'y_true', 'y_pred', 'max_depth', 'learning_rate', 'min_samples_leaf', 'max_features', 'x_train_size']
 vals = [list() for i in range(len(keys))]
 res  = dict(zip(keys, vals))
 
@@ -138,6 +139,14 @@ def ModelRun():
     # iterate over different parameter versions
     for n, pV in enumerate(filp):
         dat = pd.read_csv(pV)
+        # for ent in dat.columns.values:
+        #     if ent.split('_')[-1] in ['GreenUp', 'Maturity']:
+        #         for ind, j in enumerate(dat[str(ent)]):
+        #             if np.isnan(j) == True:
+        #                 dat[str(ent)].iloc[ind] = 0
+                    # else:
+                    #     dat[str(ent)].iloc[ind] = 1
+
         # iterate over different parameter-sets
         if pV.split('/')[-1].startswith('NDVI'):
             par_sets  = par_sets_NDVI
@@ -150,16 +159,19 @@ def ModelRun():
             par_names = par_names_NBR
         for i, par in enumerate(par_sets):
             # subset data per predictor set
+           # block = dat[par]
             block = dat[par].dropna()
+
             # split into train & test
             x_Train, x_Test, y_Train, y_Test = train_test_split(block.iloc[:, np.where((block.columns.values=='Mean_AGB') == False)[0]],
                              block['Mean_AGB'], random_state= 42, test_size = 0.3)
 
             res['ParVers'].append(pV.split('/')[-1].split('.')[0])
             res['ParSet'].append(par_names[i])
+            res['x_train_size'].append(x_Train.shape[0])
 
-            stor = p1 + '/Modelling/runs/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
-            ModPerfor(Model(y_Train, x_Train, stor, 24),
+            stor = p1 + '/Modelling/runs_matgreen/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
+            ModPerfor(Model(y_Train, x_Train, stor, 54),
                       y_Test, x_Test)
             print(pV.split('/')[-1].split('.')[0])
             print(par_names[i])
@@ -186,4 +198,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(p1 + 'Modelling/runs/AllRuns.csv', sep=',', index=False)
+df.to_csv(p1 + 'Modelling/runs_matgreen/AllRuns.csv', sep=',', index=False)
