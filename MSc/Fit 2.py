@@ -41,9 +41,9 @@ def ModPerfor(cv_results, yData, xData):
 
 
 # path1 = '/home/florus/Seafile/myLibrary/'
-path1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/' # Geoserv2
+path1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/' # Geoserv2
 
-dat   = pd.read_csv(path1 + 'MSc/Modelling/Initial_run.csv')
+dat   = pd.read_csv(path1 + 'MSc/Modelling/Single_VIs/Modelling/iteration_base/initial_run.csv')
 dummy = np.array([i for i in range(1, 366, 1)])
 
 # make results container
@@ -56,42 +56,29 @@ def ModelRunner():
     for counti in range(100):
         res['Iteration'].append(str(counti + 1))
         # make a seasparm container
-        keys = ['GrowSeas', 'GrowFit', 'Cell', 'Index', 'SoS', 'EoS', 'SeasMax',
-               'SeasMin', 'SeasInt', 'SeasLen', 'SeasAmp', 'BM',
-                'p1', 'p2', 'p3', 'p4', 'p5', 'p6']
+        keys = ['GrowSeas', 'GrowFit', 'Cell', 'Index', 'SoS', 'EoS', 'SeasMax', 'SeasMin', 'SeasInt', 'SeasLen', 'SeasAmp', 'BM', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6']
         vals = [list() for i in range(len(keys))]
         pars = dict(zip(keys, vals))
 
         for index, row in dat.iterrows():
 
-            pars['GrowSeas'].append(row['GrowSeas'])
-            pars['GrowFit'].append(row['GrowFit'])
-            pars['Cell'].append(row['Cell'])
-            pars['Index'].append(row['Index'])
-            pars['BM'].append(row['BM'])
+            p1 = np.random.random_sample() * (row['p1u'] - row['p1l']) + row['p1l']
+            p2 = np.random.random_sample() * (row['p2u'] - row['p2l']) + row['p2l']
+            p3 = np.random.random_sample() * (row['p3u'] - row['p3l']) + row['p3l']
+            p4 = np.random.random_sample() * (row['p4u'] - row['p4l']) + row['p4l']
+            p5 = np.random.random_sample() * (row['p5u'] - row['p5l']) + row['p5l']
+            p6 = np.random.random_sample() * (row['p6u'] - row['p6l']) + row['p6l']
 
-            SeasMax = 0
-            SeasMin = 0
-            while SeasMax <=0 or SeasMax > 0.9 or SeasMin <= 0 or SeasMin > 0.8\
-                    and SeasMax != SeasMin:
-                p1 = np.random.random_sample() * (row['p1u'] - row['p1l']) + row['p1l']
-                p2 = np.random.random_sample() * (row['p2u'] - row['p2l']) + row['p2l']
-                p3 = np.random.random_sample() * (row['p3u'] - row['p3l']) + row['p3l']
-                p4 = np.random.random_sample() * (row['p4u'] - row['p4l']) + row['p4l']
-                p5 = np.random.random_sample() * (row['p5u'] - row['p5l']) + row['p5l']
-                p6 = np.random.random_sample() * (row['p6u'] - row['p6l']) + row['p6l']
+            pred = funci(dummy, p1, p2, p3, p4, p5, p6)
 
-                pred = funci(dummy, p1, p2, p3, p4, p5, p6)
-
-                dev1 = np.diff(pred)
-                SoS = np.argmax(dev1) + 1
-                EoS = np.argmin(dev1) + 1
-                SeasMax = round(max(pred), 2)
-                SeasMin = round(min(pred), 2)
-                print(index)
-                print('min = ' + str(SeasMin))
-                print('max = ' + str(SeasMax))
-                print('')
+            dev1 = np.diff(pred)
+            SoS = np.argmax(dev1) + 1
+            EoS = np.argmin(dev1) + 1
+            SeasMax = round(max(pred), 2)
+            SeasMin = round(min(pred), 2)
+            #print(index)
+            if SeasMax <=0.25 or SeasMax > 0.99 or SeasMin <= 0.25 or SeasMin > 0.8:
+                continue
             SeasInt = round(np.trapz(funci(np.arange(SoS, EoS + 1, 1),
                                         p1, p2, p3, p4, p5, p6)), 2)
             SeasLen = EoS - SoS
@@ -111,10 +98,16 @@ def ModelRunner():
             pars['p5'].append(p5)
             pars['p6'].append(p6)
 
+            pars['GrowSeas'].append(row['GrowSeas'])
+            pars['GrowFit'].append(row['GrowFit'])
+            pars['Cell'].append(row['Cell'])
+            pars['Index'].append(row['Index'])
+            pars['BM'].append(row['BM'])
+
 
 
         dati = pd.DataFrame(data=pars)
-        dati.to_csv(path1 + 'MSc/Modelling/runs101/para/iteration_base' + '_run_' +
+        dati.to_csv(path1 + 'MSc/Modelling/Single_VIs/Modelling/runs100/para_continue/iteration_base' + '_run_' +
                     str(counti + 1) + '.csv',
                     sep=',', index = False)
 
@@ -134,28 +127,30 @@ def ModelRunner():
         dati_med = dati_med.reset_index()
 
         # split predictors into dfs per Index (
-        ndvi = dati_med[dati_med['Index']=='NDVI'].drop(['Index', 'BM'], axis = 1)
-        evi  = dati_med[dati_med['Index']=='EVI'].drop(['Index', 'BM'], axis = 1)
-        nbr  = dati_med[dati_med['Index']=='NBR'].drop(['Index', 'BM'], axis = 1)
+        ndvi = dati_med[dati_med['Index']=='NDVI'].drop(['Index', 'Cell'], axis = 1)
+        ndvi.reset_index()
+        block = ndvi
+        # evi  = dati_med[dati_med['Index']=='EVI'].drop(['Index', 'BM'], axis = 1)
+        # nbr  = dati_med[dati_med['Index']=='NBR'].drop(['Index', 'BM'], axis = 1)
 
         # rename columns
-        ndvi_cols_o = ndvi.columns.values.tolist()
-        ndvi_cols_n = [ndvi_cols_o[0]] + ['NDVI_' + i for i in ndvi_cols_o[1:len(ndvi_cols_o)]]
+        # ndvi_cols_o = ndvi.columns.values.tolist()
+        # ndvi_cols_n = [ndvi_cols_o[0]] + ['NDVI_' + i for i in ndvi_cols_o[1:len(ndvi_cols_o)]]
 
-        evi_cols_o = evi.columns.values.tolist()
-        evi_cols_n = [evi_cols_o[0]] + ['EVI_' + i for i in evi_cols_o[1:len(evi_cols_o)]]
+        # evi_cols_o = evi.columns.values.tolist()
+        # evi_cols_n = [evi_cols_o[0]] + ['EVI_' + i for i in evi_cols_o[1:len(evi_cols_o)]]
+        #
+        # nbr_cols_o = nbr.columns.values.tolist()
+        # nbr_cols_n = [nbr_cols_o[0]] + ['NBR_' + i for i in nbr_cols_o[1:len(nbr_cols_o)]]
 
-        nbr_cols_o = nbr.columns.values.tolist()
-        nbr_cols_n = [nbr_cols_o[0]] + ['NBR_' + i for i in nbr_cols_o[1:len(nbr_cols_o)]]
+        # ndvi.rename(columns= dict(zip(ndvi_cols_o, ndvi_cols_n)), inplace= True)
+        # evi.rename(columns= dict(zip(evi_cols_o, evi_cols_n)), inplace= True)
+        # nbr.rename(columns= dict(zip(nbr_cols_o, nbr_cols_n)), inplace= True)
 
-        ndvi.rename(columns= dict(zip(ndvi_cols_o, ndvi_cols_n)), inplace= True)
-        evi.rename(columns= dict(zip(evi_cols_o, evi_cols_n)), inplace= True)
-        nbr.rename(columns= dict(zip(nbr_cols_o, nbr_cols_n)), inplace= True)
-
-        block = pd.merge(ndvi, evi, on='Cell', how='left').\
-            merge(nbr, on='Cell', how='left').merge(dati_med[['Cell', 'BM']], on='Cell', how='left').\
-            drop(['Cell'], axis = 1).drop_duplicates()
-        block.reset_index()
+        # block = pd.merge(ndvi, evi, on='Cell', how='left').\
+        #     merge(nbr, on='Cell', how='left').merge(dati_med[['Cell', 'BM']], on='Cell', how='left').\
+        #     drop(['Cell'], axis = 1).drop_duplicates()
+        # block.reset_index()
 
         # split into train & test
         x_Train, x_Test, y_Train, y_Test = train_test_split(
@@ -163,10 +158,11 @@ def ModelRunner():
             block['BM'], random_state=42, test_size=0.3)
 
         # set model
-        stor = path1 + 'MSc/Modelling/runs101/sav/'+ 'run_' + str(counti +1) + '.sav'
-        ModPerfor(Model(y_Train, x_Train, stor, 25),
+        stor = path1 + 'MSc/Modelling/Single_VIs/Modelling/runs100/sav_continue/'+ 'run_' + str(counti +1) + '.sav'
+        ModPerfor(Model(y_Train, x_Train, stor, 45),
                   y_Test, x_Test)
 
+        print(counti)
 
        # ##### run gbr counti times
 if __name__ == '__main__':
@@ -186,4 +182,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(path1 + 'MSc/Modelling/runs101/AllRuns.csv', sep=',', index=False)# then, group by cell & index and then drop growseas and growfit
+df.to_csv(path1 + 'MSc/Modelling/Single_VIs/Modelling/runs100/All100Runs_continue.csv', sep=',', index=False)# then, group by cell & index and then drop growseas and growfit
