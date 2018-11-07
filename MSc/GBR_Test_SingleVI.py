@@ -44,13 +44,13 @@ def ModPerfor(cv_results, yData, xData):
 
 # #### create master file list for pred/resp sets
 # p1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/'
-p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/' # Geoserv2
+p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/' # Geoserv2
 
-path_ns  = p1 + 'data_junks_from_R/not_smooth/subsets'
+path_ns  = p1 + 'data_junks_from_R/not_smooth/missed'
 path_sm  = p1 + 'data_junks_from_R/smooth/subsets'
 path_sm5 = p1 + 'data_junks_from_R/smooth5/subsets'
 
-paths = [path_ns, path_sm, path_sm5]
+paths = [path_ns]#, path_sm, path_sm5]
 
 fil   = [getFilelist(path, '.csv') for path in paths]
 filp  = [f for fi in fil for f in fi]
@@ -158,7 +158,7 @@ def ModelRun():
             res['ParVers'].append(pV.split('/')[-1].split('.')[0])
             res['ParSet'].append(par_names[i])
 
-            stor = p1 + '/Modelling/runs/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
+            stor = p1 + '/Modelling/runs_missed/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
             ModPerfor(Model(y_Train, x_Train, stor, 24),
                       y_Test, x_Test)
             print(pV.split('/')[-1].split('.')[0])
@@ -186,4 +186,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(p1 + 'Modelling/runs/AllRuns.csv', sep=',', index=False)
+df.to_csv(p1 + 'Modelling/runs_missed/AllRuns.csv', sep=',', index=False)
