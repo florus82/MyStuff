@@ -2,15 +2,16 @@ from FloppyToolZ.MasterFuncs import *
 
 # set working station
 # path1 = '/home/florus/MSc/'
-path1 = 'Z:/_students_data_exchange/FP_FP/'
+path1 = 'Y:/_students_data_exchange/FP_FP/'
 # path2 = '/home/florus/Seafile/myLibrary/MSc/'
-path2 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/'
+path2 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/'
 
 # ########################################################################## load monster-cube
 # get a list for all masks/tiles --> this is highest hierarchical order: set manually to not blow geoserv2
 maskL = getFilelist(path1 + 'RS_Data/MODIS/rasterized', '.tiff')
 
-ma   = maskL[0] ################# manual set!!!!!!!!!!!!!!!!
+tile = 'Mod3'
+ma   = maskL[2] ################# manual set!!!!!!!!!!!!!!!!
 mas  = gdal.Open(ma)
 mask  = mas.GetRasterBand(1).ReadAsArray()
 mask[mask == 0] = np.nan
@@ -44,8 +45,8 @@ modTims = [k for k ,v in sorted(mdict.items())]
 
 # load monster block
 tile_NDVI_conti = []
-tile_EVI_conti  = []
-tile_NBR_conti  = []
+# tile_EVI_conti  = []
+# tile_NBR_conti  = []
 tile_timeline   = []
 tile_dummy      = []
 
@@ -80,38 +81,38 @@ for tims in timeframe:
         ndviB = ndvi.GetRasterBand(1)
         tile_NDVI_conti.append((ndviB.ReadAsArray(reader[0], reader[1], reader[2], reader[3]) * powerMask )/10000)
 
-        evi = gdal.Open(select[0])
-        eviB = evi.GetRasterBand(1)
-        tile_EVI_conti.append((eviB.ReadAsArray(reader[0], reader[1], reader[2], reader[3]) * powerMask)/10000)
-
-        mir = gdal.Open(select[1])
-        mirB = mir.GetRasterBand(1)
-        mirA = mirB.ReadAsArray(reader[0], reader[1], reader[2], reader[3]) * powerMask
-        nir = gdal.Open(select[3])
-        nirB = nir.GetRasterBand(1)
-        nirA = nirB.ReadAsArray(reader[0], reader[1], reader[2], reader[3]) * powerMask
-        tile_NBR_conti.append((nirA - mirA) / (nirA + mirA))
+        # evi = gdal.Open(select[0])
+        # eviB = evi.GetRasterBand(1)
+        # tile_EVI_conti.append((eviB.ReadAsArray(reader[0], reader[1], reader[2], reader[3]) * powerMask)/10000)
+        #
+        # mir = gdal.Open(select[1])
+        # mirB = mir.GetRasterBand(1)
+        # mirA = mirB.ReadAsArray(reader[0], reader[1], reader[2], reader[3]) * powerMask
+        # nir = gdal.Open(select[3])
+        # nirB = nir.GetRasterBand(1)
+        # nirA = nirB.ReadAsArray(reader[0], reader[1], reader[2], reader[3]) * powerMask
+        # tile_NBR_conti.append((nirA - mirA) / (nirA + mirA))
 
 # dump all VI-timeseries dfs tile-wise in the list
 print('putting lists together')
-VI_conti = tile_NDVI_conti + tile_EVI_conti + tile_NBR_conti
+VI_conti = tile_NDVI_conti # + tile_EVI_conti + tile_NBR_conti
 print('deleting lists')
-del tile_NDVI_conti, tile_EVI_conti, tile_NBR_conti
+del tile_NDVI_conti #, tile_EVI_conti, tile_NBR_conti
 print('stacking list')
 monster_block = np.stack(VI_conti, axis = 2)
 print('deleting list')
 del VI_conti
 
 # dump timeline and dummy list
-joblib.dump(tile_timeline,path2 + 'Modelling/prediction/megadump/timeline.sav')
-joblib.dump(tile_dummy, path2 + 'Modelling/prediction/megadump/dummy.sav')
+joblib.dump(tile_timeline,path1 + 'MSc_outside_Seafile/' + tile + '/time/timeline.sav')
+joblib.dump(tile_dummy,path1 + 'MSc_outside_Seafile/' + tile + '/time/dummy.sav')
 
 # set number of tiles and create cutter
-no_tiles = 24**2
+no_tiles = 36**2
 
 keys = ['x_off', 'y_off', 'x_count', 'y_count']
 
-y_off_L   = [i for i in range(0, mask.shape[0], math.floor(mask.shape[0] / int(no_tiles**0.5)))]
+y_off_L   = [i for i in range(0, mask.shape[0], math.ceil(mask.shape[0] / int(no_tiles**0.5)))]
 ydum      = y_off_L + [mask.shape[0]]
 y_count_L = [ydum[i+1] - y_off_L[i] for i in range(len(y_off_L))]
 
@@ -126,13 +127,10 @@ subtil = dict(zip(keys, vals))
 # slice monsterblock and dump cubes
 for i in range(no_tiles):
     print('tiling : ' + str(i))
-   # print(str(subtil['y_off'][i])+ ' till ' + str(subtil['y_count'][i] + subtil['y_off'][i]) + ' and ' + str(subtil['x_off'][i]) + ' till ' + str(subtil['x_count'][i] + subtil['x_off'][i]))
+   #print(str(subtil['y_off'][i])+ ' till ' + str(subtil['y_count'][i] + subtil['y_off'][i]) + ' and ' + str(subtil['x_off'][i]) + ' till ' + str(subtil['x_count'][i] + subtil['x_off'][i]))
     sub = monster_block[subtil['y_off'][i]:(subtil['y_count'][i] + subtil['y_off'][i]),
-          subtil['x_off'][i]:(subtil['x_count'][i] + subtil['x_off'][i])]
+          subtil['x_off'][i]:(subtil['x_count'][i] + subtil['x_off'][i]),:]
 
-    joblib.dump(sub, path2 + 'Modelling/prediction/megadump/cube_' + 'X_' +str(subtil['x_off'][i]) + '_' +\
+    joblib.dump(sub, path1 + 'MSc_outside_Seafile/' + tile + '/cubes/cube_' + 'X_' +str(subtil['x_off'][i]) + '_' +\
                     str(subtil['x_off'][i] + subtil['x_count'][i]) +\
                     '__Y_' +str(subtil['y_off'][i]) + '_' + str(subtil['y_off'][i] + subtil['y_count'][i]) +'.sav')
-
-
-
