@@ -40,13 +40,13 @@ np.random.seed(42)
 
 dummy = np.arange(1,366,1)
 
-smooth  = getFilelist('/home/florus/MSc/Modelling/for_python/smooth', '.csv')
+# smooth  = getFilelist('/home/florus/MSc/Modelling/for_python/smooth', '.csv')
 # smooth5 = getFilelist('/home/florus/MSc/Modelling/for_python/smooth5', '.csv')
-# no_smot = getFilelist('/home/florus/MSc/Modelling/for_python/not_smooth', '.csv')
+not_smooth = getFilelist('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/for_python/NDVI_not_smooth', '.csv')
 
-indi  = ['NDVI', 'EVI', 'NBR']
+indi  = ['NDVI']#, 'EVI', 'NBR']
 
-for file in smooth:
+for file in not_smooth:
         blo   = pd.read_csv(file)
         cells = blo['Cell'].unique()
 
@@ -56,7 +56,7 @@ for file in smooth:
                 sub = blo.iloc[np.where(blo['Cell'] == cell)[0]]
 
                 res['GrowSeas'].append(file.split('/')[-1][3:7])
-                res['GrowFit'].append(file.split('_')[2])
+                res['GrowFit'].append(file.split('_')[-2])
 
                 # fit the function
                 popt, pcov = optimize.curve_fit(funci,
@@ -110,7 +110,7 @@ for file in smooth:
                 print(i)
 
         df = pd.DataFrame(data=res)
-        df.to_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/test.csv', sep=',', index=False)
+        df.to_csv('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/iteration_base/initial_run.csv', sep=',', index=False)
 
 
 
