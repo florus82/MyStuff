@@ -44,11 +44,11 @@ def ModPerfor(cv_results, yData, xData):
 
 # #### create master file list for pred/resp sets
 # p1 = '/home/florus/'
-p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/' # Geoserv2
+p1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/ALL_VIs/data_junks_from_R/' # Geoserv2
 
-path_ns  = p1 + 'MSc/Modelling/not_smooth/subsets'
-path_sm  = p1 + 'MSc/Modelling/smooth/subsets'
-path_sm5 = p1 + 'MSc/Modelling/smooth5/subsets'
+path_ns  = p1 + 'not_smooth/subsets'
+path_sm  = p1 + 'smooth/subsets'
+path_sm5 = p1 + 'smooth5/subsets'
 
 paths = [path_ns, path_sm, path_sm5]
 
@@ -56,7 +56,7 @@ fil   = [getFilelist(path, '.csv') for path in paths]
 filp  = [f for fi in fil for f in fi]
 
 # #### read in column names for different pred-sets (seasPAr, seasFit, seasStat)
-c_fil  = getFilelist(p1 + 'MSc/Modelling/colnames', '.csv')
+c_fil  = getFilelist('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc\Modelling/All_VIs/colnames', '.csv')
 c_fil.sort()
 c_seasPar  = pd.read_csv(c_fil[1])
 c_seasFit  = pd.read_csv(c_fil[0])
@@ -73,12 +73,12 @@ c_seasStat.append('Mean_AGB')
 c_seasParStat.append('Mean_AGB')
 
 # exlcude GreenUP & Maturity due to too many NaNs
-kill = ['NDVI_GreenUp', 'EVI_GreenUp','NBR_GreenUp',
-        'NDVI_Maturity', 'EVI_Maturity', 'NBR_Maturity']
-
-for ki in kill:
-    c_seasPar.remove(ki)
-    c_seasParStat.remove(ki)
+# kill = ['NDVI_GreenUp', 'EVI_GreenUp','NBR_GreenUp',
+#         'NDVI_Maturity', 'EVI_Maturity', 'NBR_Maturity']
+#
+# for ki in kill:
+#     c_seasPar.remove(ki)
+#     c_seasParStat.remove(ki)
 # #### read in the data-blocks and seperate into train & test
 
 # build result container
@@ -112,8 +112,8 @@ def ModelRun():
             res['ParVers'].append(pV.split('/')[-1].split('.')[0])
             res['ParSet'].append(par_names[i])
 
-            stor = p1 + 'MSc/Modelling/runs/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
-            ModPerfor(Model(y_Train, x_Train, stor, 25),
+            stor = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/ALL_VIs/runs_greenMat/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
+            ModPerfor(Model(y_Train, x_Train, stor, 40),
                       y_Test, x_Test)
 
             print(n)
@@ -138,4 +138,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(p1 + 'MSc/Modelling/runs/AllRuns.csv', sep=',', index=False)
+df.to_csv('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/ALL_VIs/runs_greenMat/AllRuns.csv', sep=',', index=False)
