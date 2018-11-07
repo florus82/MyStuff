@@ -44,11 +44,11 @@ def ModPerfor(cv_results, yData, xData):
 
 # #### create master file list for pred/resp sets
 # p1 = '/home/florus/'
-p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/' # Geoserv2
+p1 = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/'
 
-path_ns  = p1 + 'MSc/Modelling/not_smooth/subsets'
-path_sm  = p1 + 'MSc/Modelling/smooth/subsets'
-path_sm5 = p1 + 'MSc/Modelling/smooth5/subsets'
+path_ns  = p1 + 'not_smooth/subsets'
+path_sm  = p1 + 'smooth/subsets'
+path_sm5 = p1 + 'smooth5/subsets'
 
 paths = [path_ns, path_sm, path_sm5]
 
@@ -56,7 +56,7 @@ fil   = [getFilelist(path, '.csv') for path in paths]
 filp  = [f for fi in fil for f in fi]
 
 # #### read in column names for different pred-sets (seasPAr, seasFit, seasStat)
-c_fil  = getFilelist(p1 + 'MSc/Modelling/colnames', '.csv')
+c_fil  = getFilelist('Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/All_VIs/colnames', '.csv')
 c_fil.sort()
 c_seasPar  = pd.read_csv(c_fil[1])
 c_seasFit  = pd.read_csv(c_fil[0])
@@ -112,8 +112,8 @@ def ModelRun():
             res['ParVers'].append(pV.split('/')[-1].split('.')[0])
             res['ParSet'].append(par_names[i])
 
-            stor = p1 + 'MSc/Modelling/runs/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
-            ModPerfor(Model(y_Train, x_Train, stor, 25),
+            stor = 'Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs_missed/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
+            ModPerfor(Model(y_Train, x_Train, stor, 28),
                       y_Test, x_Test)
 
             print(n)
@@ -138,4 +138,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(p1 + 'MSc/Modelling/runs/AllRuns.csv', sep=',', index=False)
+df.to_csv('Z:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs_missed/AllRuns.csv', sep=',', index=False)
