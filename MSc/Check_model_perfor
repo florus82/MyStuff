@@ -1,0 +1,42 @@
+from FloppyToolZ.MasterFuncs import *
+
+# get the features in right order
+c_fil  = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/All_VIs/colnames', '.csv')
+c_fil.sort()
+c_seasPar  = pd.read_csv(c_fil[1])
+c_seasPar_NDVI = c_seasPar[0:9]
+c_seasPar_NDVI  = c_seasPar_NDVI[c_seasPar_NDVI.columns.values[0]].values.tolist()
+killNDVI = ['NDVI_GreenUp', 'NDVI_Maturity']
+for ki in killNDVI:
+    c_seasPar_NDVI.remove(ki)
+
+keys = ['Run'] + c_seasPar_NDVI
+vals = [list() for _ in range(len(keys))]
+res  = dict(zip(keys, vals))
+
+# load the 100 model iterations
+aa = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/runs_check100/sav','.sav')
+
+for a in aa:
+    res[keys[0]].append(int(a.split('/')[-1].split('.')[0].split('_')[-1]))
+    b = joblib.load(a)
+    c = b.best_estimator_.feature_importances_
+    for f in range(len(c)):
+        res[keys[f+1]].append(c[f])
+
+df  = pd.DataFrame(data = res)
+df.to_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/runs100/sav_feat_importance.csv', sep=',',index=False)
+
+
+# what where actually the three model runs
+iter100 = pd.read_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs100/All100Runs.csv')
+savs    = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs100/sav', '.sav')
+sav     = getMinMaxMedianSAV(iter100, savs)
+for s in sav:
+    print(s[0])
+
+iter1002 = pd.read_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs100/All100Runs_continue.csv')
+savs2    = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs100/sav_continue', '.sav')
+sav2     = getMinMaxMedianSAV(iter1002, savs2)
+for s in sav2:
+    print(s[0])
