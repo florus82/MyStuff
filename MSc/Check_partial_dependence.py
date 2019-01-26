@@ -9,7 +9,9 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble.partial_dependence import plot_partial_dependence
 from sklearn.ensemble.partial_dependence import partial_dependence
 
-dat = pd.read_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/SINGLE_VIs/data_junks_from_R/not_smooth/subsets/NDVI_GrowSeas_and_SeasPos_Mediannot_smooth.csv')
+dat = pd.read_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/data_junks_from_R/not_smooth/subsets/NDVI_GrowSeas_and_SeasPos_Mediannot_smooth.csv')
+
+# dat = pd.read_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/data_junks_from_R/smooth/subsets/NDVI_GrowSeas_and_SeasPos_Mediansmooth.csv')
 
 p2 = '/home/florus//Seafile/myLibrary/MSc/Modelling/All_VIs/'
 c_fil  = getFilelist(p2 + 'colnames', '.csv')
@@ -25,18 +27,16 @@ for ki in killNDVI:
 par_sets  = c_seasPar_NDVI
 block = dat[par_sets].dropna()
 
-mo1 = ['run_35', 'run_1', 'run_86']
-mo2 = ['run_28', 'run_67', 'run_5']
-mo = mo1 + mo2
-pa1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs100/sav/'
-pa2 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs100/sav_continue/'
-pa = [pa1,pa1,pa1,pa2,pa2,pa2]
+mo1 = ['run_22', 'run_20', 'run_78']
+#mo2 = ['run_28', 'run_67', 'run_5']
+mo = mo1 #+ mo2
+pa1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/runs_check100_final/sav_continue/'
+pa = [pa1,pa1,pa1]
 
-mo_names = ['min', 'max', 'median', 'min', 'max', 'median', 'orig']
-mo_cat   = ['bad', 'bad', 'bad', 'continue', 'continue', 'continue', 'orig']
-paths = [j + mo[i] + '.sav' for i, j in enumerate(pa)] + ['/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/SINGLE_VIs/Modelling/runs/NDVI_GrowSeas_and_SeasPos_Mediannot_smoothSeasPar_NDVI.sav']
+mo_names = ['min', 'max', 'median', 'initial']
+paths = [j + mo[i] + '.sav' for i, j in enumerate(pa)] + ['/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/runs_final_check/NDVI_GrowSeas_and_SeasPos_Mediannot_smoothSeasPar_NDVI.sav']
 
-keys = ['Mod', 'Cat', 'y', 'x', 'Para']
+keys = ['Mod', 'y', 'x', 'Para']
 vals = [list() for _ in range(len(keys))]
 res  = dict(zip(keys, vals))
 
@@ -49,14 +49,12 @@ for z, p in enumerate(paths):
         print(tt[0][0].shape)
         for k in range(tt[0][0].shape[0]):
             res['Mod'].append(mo_names[z])
-            res['Cat'].append(mo_cat[z])
             res['y'].append(tt[0][0][k])
             res['x'].append(tt[1][0][k])
             res['Para'].append(par_sets[j])
 
 df  = pd.DataFrame(data = res)
-df.to_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/runs100/part_depend_gf_dat.csv', sep=',',index=False)
-
+df.to_csv('/home/florus/Seafile/myLibrary/MSc/PLOTS_FINAL/extracts/part_depend3.csv', sep=',',index=False)
 #
 # features = [0,1,2,3,4,5,6]
 # fig, axs = plot_partial_dependence(modi.best_estimator_, block, features,
