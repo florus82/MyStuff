@@ -3,7 +3,8 @@ from FloppyToolZ.Funci import *
 modfolder1 = '/home/florus/MSc/RS_Data/MODIS/raw/raw'
 modfolder2 = '/home/florus/MSc/RS_Data/MODIS/raw/raw2'
 modfolder3 = '/home/florus/MSc/RS_Data/MODIS/raw/raw3'
-modHDF    = getFilelist(modfolder3, '.hdf')
+modfolder4 = '/home/florus/MSc/RS_Data/MODIS/raw/raw4'
+modHDF    = getFilelist(modfolder4, '.hdf')
 modi  = gdal.Open(modHDF[0])
 modis = gdal.Open(list(modi.GetMetadata('SUBDATASETS').values())[0])
 
@@ -14,7 +15,7 @@ Chac_lyr = Chac.GetLayer()
 
 
 gtiff_driver = gdal.GetDriverByName('GTiff')
-out_ds = gtiff_driver.Create('/home/florus/MSc/RS_Data/MODIS/rasterized/Mod3.tiff',
+out_ds = gtiff_driver.Create('/home/florus/MSc/RS_Data/MODIS/rasterized/Mod4.tiff',
                              modis.RasterXSize, modis.RasterYSize, 1, gdal.GDT_Float32)
 out_ds.SetGeoTransform(modis.GetGeoTransform())
 out_ds.SetProjection(modis.GetProjection())
