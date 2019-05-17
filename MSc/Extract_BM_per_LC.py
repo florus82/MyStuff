@@ -1,7 +1,7 @@
 from FloppyToolZ.MasterFuncs import *
 
 # get prediction biomass maps
-BM_rasL = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mosaic', '.tif')
+BM_rasL = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mosaic/check/masked', '.tif')
 BM_rasL.sort()
 BM_rasL = BM_rasL[0:4]
 
@@ -46,4 +46,4 @@ for k, v in LCc.items():
 
 df  = pd.DataFrame(data = res)
 df.replace(-9999, 'NA')
-df.to_csv('/home/florus/Seafile/myLibrary/MSc/other_maps_biomass_matthias/LCC_comparison10000_gf_orig.csv', sep=',',index=False)
+df.to_csv('/home/florus/Seafile/myLibrary/MSc/PLOTS_FINAL/extracts/LCC_comparison10000_check.csv', sep=',',index=False)

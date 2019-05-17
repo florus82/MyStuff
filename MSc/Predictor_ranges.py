@@ -1,6 +1,6 @@
 from FloppyToolZ.MasterFuncs import *
 
-SPs = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mosaic', '.tif')
+SPs = getFilelist('/home/florus/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mosaic/check/masked', '.tif')
 SPs.sort()
 SPs = SPs[4:]
 #SPs = SPs[::3]
@@ -38,7 +38,7 @@ for sp in SPs:
     res['median'].append(np.nanmedian(c))
 
 df  = pd.DataFrame(data = res)
-df.to_csv('/home/florus/Seafile/myLibrary/MSc/Modelling/pred_ranges2_gf.csv', sep=',',index=False)
+df.to_csv('/home/florus/Seafile/myLibrary/MSc/PLOTS_FINAL/extracts/pred_ranges4.csv', sep=',',index=False)
 
 
 
