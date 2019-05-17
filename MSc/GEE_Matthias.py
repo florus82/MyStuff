@@ -4,7 +4,6 @@
 ## Humboldt-University Berlin                                                                                   ##
 # ####################################### IMPORT MODULES, START EARTH-ENGINE ################################## ##
 import time
-import baumiTools as bt
 import ogr
 import csv
 import ee
@@ -16,12 +15,12 @@ print("--------------------------------------------------------")
 print("Starting process, time: " +  starttime)
 print("")
 # ####################################### FILES AND FOLDER-PATHS ############################################## #
-root_folder = 'E:/Baumann/HERCULES/GEE_ExtracyLandsatSR/'
-shp = ogr.Open(root_folder + "EU28_2015_20161028_hubgeo.shp")
-output = root_folder + "EU28_2015_20161028_hubgeo_2015values.csv"
+root_folder = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/'
+shp = ogr.Open(root_folder + 'Combined_centerCoord_4326.shp')
+output = root_folder + 'Combined_centerCoord_4326_period2.csv'
 # ####################################### SEARCH PARAMETERS ################################################### #
-startDate = '2015-01-01'
-endDate = '2015-12-31'
+startDate = '2010-07-01'
+endDate = '2013-10-01'
 # ####################################### FUNCTIONS ########################################################### #
 def Retrieve_SR01_fromGEE_Point(geometry, startDate, endDate):
     # startDate & endDate has to be in the format "2018-01-01"
@@ -55,10 +54,14 @@ def Retrieve_SR01_fromGEE_Point(geometry, startDate, endDate):
     # Define the band names that we want to extract
     # l8bands = ee.List(['B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B1', 'B10', 'B11', 'pixel_qa'])
     # l8band_names = ee.List(['B', 'G', 'R', 'NIR', 'SWIR1', 'SWIR2', 'UB', 'T1', 'T2','pixel_qa'])
+    # s1bands = ee.List([])
     l8bands = ee.List(['B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'pixel_qa'])
     l8band_names = ee.List(['B', 'G', 'R', 'NIR', 'SWIR1', 'SWIR2', 'pixel_qa'])
     l457bands = ee.List(['B1', 'B2', 'B3', 'B4', 'B5', 'B7', 'pixel_qa'])
     l457band_names = ee.List(['B', 'G', 'R', 'NIR', 'SWIR1', 'SWIR2', 'pixel_qa'])
+
+    # Sentinel
+    # sent_1  = ee.ImageCollection('COPERNICUS/S1_GRD').
     # Landsat 8
     coll_L8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR'). \
         filterDate(startDate, endDate). \
@@ -92,14 +95,14 @@ feat = lyr.GetNextFeature()
 #while feat:
 for feat in tqdm(lyr):
 # Extract ID-Info from SHP-file and other informations
-    Pid = feat.GetField("POINT_ID")
+    Pid = feat.GetField("UniqueID")
     #print("Processing Point ID " + str(Pid))
 # Now get the geometry and do stuff
     geom = feat.GetGeometryRef()
 # Now extract the individual data from the collections based on the definitions above
     vals = Retrieve_SR01_fromGEE_Point(geometry=geom, startDate=startDate, endDate=endDate)
 # Add to the header-line the Variable-Name Point-ID, and add it to each element as well
-    vals[0].append("Point-ID")
+    vals[0].append("UniqueID")
     for i in range(1,len(vals)):
         vals[i].append(Pid)
 # Remove right away the masked values, and some remnants from the sceneID
