@@ -43,7 +43,7 @@ def ModPerfor(cv_results, yData, xData):
 # path1 = '/home/florus/Seafile/myLibrary/'
 path1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/' # Geoserv2
 
-dat   = pd.read_csv(path1 + 'MSc/Modelling/Single_VIs/Modelling/iteration_base/initial_run.csv')
+dat   = pd.read_csv(path1 + 'MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/iteration_base/initial_run_final_check.csv')
 dummy = np.array([i for i in range(1, 366, 1)])
 
 # make results container
@@ -84,6 +84,9 @@ def ModelRunner():
             SeasLen = EoS - SoS
             SeasAmp = SeasMax - SeasMin
 
+            if SeasLen < 20 or EoS < 200 or SeasInt<50:
+                continue
+
             pars['SoS'].append(SoS)
             pars['EoS'].append(EoS)
             pars['SeasMax'].append(SeasMax)
@@ -107,20 +110,20 @@ def ModelRunner():
 
 
         dati = pd.DataFrame(data=pars)
-        dati.to_csv(path1 + 'MSc/Modelling/Single_VIs/Modelling/runs100/para_continue/iteration_base' + '_run_' +
+        dati.to_csv(path1 + 'MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/runs_check100_final/para_continue/iteration_base' + '_run_' +
                     str(counti + 1) + '.csv',
                     sep=',', index = False)
 
         # find the median acroos GrowSeas and GrowFit
         aggregrations = {
-            'SoS' : lambda x: np.median(x),
-            'EoS' : lambda x: np.median(x),
-            'SeasMax' : lambda x: np.median(x),
-            'SeasMin' : lambda x: np.median(x),
-            'SeasInt' : lambda x: np.median(x),
-            'SeasLen' : lambda x: np.median(x),
-            'SeasAmp' : lambda x: np.median(x),
-            'BM' : lambda x: np.median(x)
+            'SoS' : lambda x: np.nanmedian(x),
+            'EoS' : lambda x: np.nanmedian(x),
+            'SeasMax' : lambda x: np.nanmedian(x),
+            'SeasMin' : lambda x: np.nanmedian(x),
+            'SeasInt' : lambda x: np.nanmedian(x),
+            'SeasLen' : lambda x: np.nanmedian(x),
+            'SeasAmp' : lambda x: np.nanmedian(x),
+            'BM' : lambda x: np.nanmedian(x)
         }
 
         dati_med = dati.groupby(['Cell', 'Index']).agg(aggregrations)
@@ -158,8 +161,8 @@ def ModelRunner():
             block['BM'], random_state=42, test_size=0.3)
 
         # set model
-        stor = path1 + 'MSc/Modelling/Single_VIs/Modelling/runs100/sav_continue/'+ 'run_' + str(counti +1) + '.sav'
-        ModPerfor(Model(y_Train, x_Train, stor, 45),
+        stor = path1 + 'MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/runs_check100_final/sav_continue/'+ 'run_' + str(counti +1) + '.sav'
+        ModPerfor(Model(y_Train, x_Train, stor, 58),
                   y_Test, x_Test)
 
         print(counti)
@@ -182,4 +185,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(path1 + 'MSc/Modelling/Single_VIs/Modelling/runs100/All100Runs_continue.csv', sep=',', index=False)# then, group by cell & index and then drop growseas and growfit
+df.to_csv(path1 + 'MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/runs_check100_final/All100Runs_continue.csv', sep=',', index=False)# then, group by cell & index and then drop growseas and growfit

@@ -104,8 +104,8 @@ print('deleting list')
 del VI_conti
 
 # dump timeline and dummy list
-joblib.dump(tile_timeline,path1 + 'MSc_outside_Seafile/' + tile + '/time/timeline.sav')
-joblib.dump(tile_dummy,path1 + 'MSc_outside_Seafile/' + tile + '/time/dummy.sav')
+joblib.dump(tile_timeline,path1 + 'MSc_outside_Seafile/smooth/' + tile + '/time/timeline.sav')
+joblib.dump(tile_dummy,path1 + 'MSc_outside_Seafile/smooth/' + tile + '/time/dummy.sav')
 
 # set number of tiles and create cutter
 no_tiles = 36**2
@@ -131,6 +131,6 @@ for i in range(no_tiles):
     sub = monster_block[subtil['y_off'][i]:(subtil['y_count'][i] + subtil['y_off'][i]),
           subtil['x_off'][i]:(subtil['x_count'][i] + subtil['x_off'][i]),:]
 
-    joblib.dump(sub, path1 + 'MSc_outside_Seafile/' + tile + '/cubes/cube_' + 'X_' +str(subtil['x_off'][i]) + '_' +\
+    joblib.dump(sub, path1 + 'MSc_outside_Seafile/smooth/' + tile + '/cubes/cube_' + 'X_' +str(subtil['x_off'][i]) + '_' +\
                     str(subtil['x_off'][i] + subtil['x_count'][i]) +\
                     '__Y_' +str(subtil['y_off'][i]) + '_' + str(subtil['y_off'][i] + subtil['y_count'][i]) +'.sav')

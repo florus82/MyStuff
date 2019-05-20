@@ -42,7 +42,7 @@ dummy = np.arange(1,366,1)
 
 # smooth  = getFilelist('/home/florus/MSc/Modelling/for_python/smooth', '.csv')
 # smooth5 = getFilelist('/home/florus/MSc/Modelling/for_python/smooth5', '.csv')
-not_smooth = getFilelist('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/for_python/NDVI_not_smooth', '.csv')
+not_smooth = getFilelist('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/data_junks_from_R/for_python/NDVInot_smooth', '.csv')
 
 indi  = ['NDVI']#, 'EVI', 'NBR']
 
@@ -110,27 +110,5 @@ for file in not_smooth:
                 print(i)
 
         df = pd.DataFrame(data=res)
-        df.to_csv('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/Modelling/iteration_base/initial_run.csv', sep=',', index=False)
+        df.to_csv('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/Modelling/iteration_base/initial_run_final_check.csv', sep=',', index=False)
 
-
-
-        #
-        #
-        # plt.plot(dummy,
-        #          funci(dummy,parm['p1'], parm['p2'], parm['p3'], parm['p4'], parm['p5'], parm['p6']))
-        #
-        #
-        #
-        #
-        #
-        # def Fit(x, y ):
-        #     DOY = x
-        #     NDVI = y
-        #     init = np.array([0.1023, 0.8802, 108.2, 7.596, 311.4, 7.473])
-        #     # Jetzt die FitFunktion --> musst du an deine Funktion anpassen!
-        #     fitfunc = lambda p, DOY: p[0] +p[1] * ((1 / (1 + np.exp((p[2] - x) / p[3]))) - (1 / (1 + np.exp((p[4] - x) / p[5]))))
-        #     errfunc = lambda p, DOY, NDVI: fitfunc(p, DOY) - NDVI
-        #     p1, success = optimize.leastsq(errfunc, init, args=(DOY, NDVI),maxfev=100000000)
-        #     return p1
-        #
-        # Fit(xdata,ydata)
