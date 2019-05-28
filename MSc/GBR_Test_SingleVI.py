@@ -45,7 +45,7 @@ def ModPerfor(cv_results, yData, xData):
 # #### create master file list for pred/resp sets
 # p1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/data_junks_from_R/'
 # p1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/Single_VIs/' # Geoserv2
-p1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/SINGLE_VIs/'
+p1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/'
 
 path_ns  = p1 + 'data_junks_from_R/not_smooth/subsets'
 path_sm  = p1 + 'data_junks_from_R/smooth/subsets'
@@ -106,15 +106,15 @@ killNDVI = ['NDVI_GreenUp', 'NDVI_Maturity']
 killEVI  = ['EVI_GreenUp', 'EVI_Maturity']
 killNBR  = ['NBR_GreenUp', 'NBR_Maturity']
 #
-# for ki in killNDVI:
-#     c_seasPar_NDVI.remove(ki)
-#     c_seasParStat_NDVI.remove(ki)
-# for ki in killEVI:
-#     c_seasPar_EVI.remove(ki)
-#     c_seasParStat_EVI.remove(ki)
-# for ki in killNBR:
-#     c_seasPar_NBR.remove(ki)
-#     c_seasParStat_NBR.remove(ki)
+for ki in killNDVI:
+    c_seasPar_NDVI.remove(ki)
+    c_seasParStat_NDVI.remove(ki)
+for ki in killEVI:
+    c_seasPar_EVI.remove(ki)
+    c_seasParStat_EVI.remove(ki)
+for ki in killNBR:
+    c_seasPar_NBR.remove(ki)
+    c_seasParStat_NBR.remove(ki)
 
 # #### read in the data-blocks and seperate into train & test
 
@@ -170,14 +170,12 @@ def ModelRun():
             res['ParSet'].append(par_names[i])
             res['x_train_size'].append(x_Train.shape[0])
 
-            stor = p1 + '/Modelling/runs_matgreen/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
-            ModPerfor(Model(y_Train, x_Train, stor, 54),
+            stor = p1 + '/Modelling/runs_final_check/' + pV.split('/')[-1].split('.')[0] + par_names[i] + '.sav'
+            ModPerfor(Model(y_Train, x_Train, stor, 52),
                       y_Test, x_Test)
             print(pV.split('/')[-1].split('.')[0])
             print(par_names[i])
             print(n)
-
-
 
         # ##### run gbr once
 if __name__ == '__main__':
@@ -198,4 +196,4 @@ if __name__ == '__main__':
     print("")
 
 df = pd.DataFrame(data = res)
-df.to_csv(p1 + 'Modelling/runs_matgreen/AllRuns.csv', sep=',', index=False)
+df.to_csv(p1 + 'Modelling/runs_final_check/AllRuns_final_check.csv', sep=',', index=False)

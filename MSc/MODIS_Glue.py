@@ -1,27 +1,23 @@
 from FloppyToolZ.MasterFuncs import *
 import sys
 
-path1 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/prediction/Mod1'
-path2 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/prediction/Mod2'
-path3 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/prediction/Mod3'
-path4 = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/prediction/Mod4'
+path1 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mod1/check'
+path2 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mod2/check'
+path3 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mod3/check'
+path4 = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mod4/check'
 
-storpath = '/home/florus/Seafile/myLibrary/MSc/Modelling/Single_VIs/prediction/Mosaic/'
+storpath = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/Modelling/GAP_FILLED/Single_VIs/prediction/Mosaic/check/'
 
 tiles1 = getFilelist(path1,'.tiff')
 tiles2 = getFilelist(path2,'.tiff')
 tiles3 = getFilelist(path3,'.tiff')
 tiles4 = getFilelist(path4,'.tiff')
 
-tiles1.sort()
-tiles2.sort()
-tiles3.sort()
-tiles4.sort()
+# tiles1 = [tiles1[3]]
+# tiles2 = [tiles2[3]]
+# tiles3 = [tiles3[3]]
+# tiles4 = [tiles4[3]]
 
-tiles1 = tiles1[4:7]
-tiles2 = tiles2[4:7]
-tiles3 = tiles3[4:7]
-tiles4 = tiles4[4:7]
 # check if all lists have the same order
 length = [len(tiles1), len(tiles2), len(tiles3), len(tiles4)]
 if len(set(length)) == 1:
