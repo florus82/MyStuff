@@ -3,7 +3,7 @@ from FloppyToolZ.MasterFuncs import *
 # landsat center coordinate --> UTM 20 S; epsg: 32720
 
 # load plots
-plots = ogr.Open('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/ign.shp')
+plots = ogr.Open('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/PLots/merge/Combined_UTM20S.shp')
 plot  = plots.GetLayer()
 
 # sub = ['18-A','18-B','18-C','18-D']
@@ -29,7 +29,6 @@ for z, feat in enumerate(plot):
     # finding close center coordinate
     Xstart = refX - (math.floor((refX - geomX) / grid_size) * 30) - 15
     Ystart = refY - (math.floor((refY - geomY) / grid_size) * 30) - 15
-
 
 
     refP = {'X': [Xstart], 'Y': [Ystart]}
@@ -68,8 +67,8 @@ for z, feat in enumerate(plot):
 #ShapeKiller('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/test/test_all3.shp')
 
 driver = ogr.GetDriverByName('ESRI Shapefile')
-shapeStor = driver.CreateDataSource('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/test')
-out_lyr = shapeStor.CreateLayer('ignacio_revisited', getSpatRefVec(plot), ogr.wkbPolygon)
+shapeStor = driver.CreateDataSource('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/')
+out_lyr = shapeStor.CreateLayer('combined_plots', getSpatRefVec(plot), ogr.wkbPolygon)
 
 # create fields
 #FID
@@ -97,12 +96,12 @@ shapeStor.Destroy()
 
 
 # load file and store as kml
-resi = ogr.Open('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/test/ignacio_revisited.shp')
+resi = ogr.Open('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/combined_plots.shp')
 resi_lyr = resi.GetLayer()
 
 driver = ogr.GetDriverByName('KML')
-shapeStor = driver.CreateDataSource('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/ignacio_revisit.kml')
-out_lyr = shapeStor.CreateLayer('ignacio_revisit_kml', resi_lyr.GetSpatialRef(), ogr.wkbPolygon)
+shapeStor = driver.CreateDataSource('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/combined_plots.kml')
+out_lyr = shapeStor.CreateLayer('combined_plots', resi_lyr.GetSpatialRef(), ogr.wkbPolygon)
 
 out_lyr.CreateFields(resi_lyr.schema)
 
