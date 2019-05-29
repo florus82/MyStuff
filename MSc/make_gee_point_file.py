@@ -1,66 +1,61 @@
 from FloppyToolZ.Funci import *
 
-#
-# file = '/home/florian/MSc/Biomass data/FP_MB/Conti/Conti-etal_BiomassData_withInfo_modID_and_BM.shp'
-# id_fields = 'Changed_ID'
 
+file = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/2nd_round/plot_coords/Combined_cont_gasp1_centerCoord_MODIS_ordered_XY.shp'
+id_fields = 'UniqueID'
+storpath = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/2nd_round/plot_coords'
 
-file = '//home/florian/MSc/Biomass data/FP_MB/Gasparri_DryChaco/parcelas.shp'
-id_fields = 'conglomera'
-id_fields2 = 'PLOT'
-storpath = '/home/florian/MSc/GEE/9Points'
+grid = 10
 
-grid = 250
-
-if os.path.isfile(storpath + '/' + file.split('/')[-1].split('.')[0] + '_9Points_' + str(grid) + '.shp'):
-    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_9Points_' + str(grid) + '.shp')
-    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_9Points_' + str(grid) + '.shx')
-    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_9Points_' + str(grid) + '.prj')
-    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_9Points_' + str(grid) + '.dbf')
+if os.path.isfile(storpath + '/' + file.split('/')[-1].split('.')[0] + '_snaked_' + str(grid) + '.shp'):
+    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_snaked_' + str(grid) + '.shp')
+    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_snaked_' + str(grid) + '.shx')
+    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_snaked_' + str(grid) + '.prj')
+    os.remove(storpath + '/' + file.split('/')[-1].split('.')[0] + '_snaked_' + str(grid) + '.dbf')
 
 
 b1     = ogr.Open(file)
 b1l    = b1.GetLayer()
-
+out_SPRef = osr.SpatialReference()
+out_SPRef.ImportFromEPSG(4326)
 
 # create shapefile
 driver = ogr.GetDriverByName('ESRI Shapefile')
 shapeStor = driver.CreateDataSource(storpath)
-out_lyr = shapeStor.CreateLayer(file.split('/')[-1].split('.')[0] + '_9Points_' + str(grid), getSpatRefVec(b1), ogr.wkbPoint)
+out_lyr = shapeStor.CreateLayer(file.split('/')[-1].split('.')[0] + '_snaked_' + str(grid), out_SPRef, ogr.wkbPoint)
 # create fields
 id_fld = ogr.FieldDefn('POINT_ID', ogr.OFTString)
 out_lyr.CreateField(id_fld)
 id_fld.SetName('Block_ID')
 out_lyr.CreateField(id_fld)
+
 out_feat = ogr.Feature(out_lyr.GetLayerDefn())
 
 pointList = []
 
 
 feat = b1l.GetNextFeature()
-out_SPRef = osr.SpatialReference()
-out_SPRef.ImportFromEPSG(3035)
-
 
 while feat:
-    geom = feat.geometry()
-    transF = osr.CoordinateTransformation(getSpatRefVec(feat), out_SPRef)
-    geom.Transform(transF)
-    poi = dict.fromkeys('X', 'Y')
-    poi['X'] = [geom.GetX()]
-    poi['Y'] = [geom.GetY()]
-    poin = ApplySnake(poi, grid, BuildSnake(1))
-    for i in range(len(poin['X'])):
-        point = ogr.Geometry(ogr.wkbPoint)
-        point.AddPoint(poin['X'][i], poin['Y'][i])
-        transF2 = osr.CoordinateTransformation(out_SPRef, getSpatRefVec(b1))
-        point.Transform(transF2)
-        out_feat.SetGeometry(point)
-        #out_feat.SetField(0, str(feat.GetField(id_fields)))
-        out_feat.SetField(0, str(feat.GetField(id_fields))+ feat.GetField(id_fields2))
-        out_feat.SetField(1, i)
-        out_lyr.CreateFeature(out_feat)
-    feat = b1l.GetNextFeature()
+    if(feat.GetField('Dups') == 'N'):
+        geom = feat.geometry()
+        poi = dict.fromkeys('X', 'Y')
+        poi['X'] = [geom.GetX()]
+        poi['Y'] = [geom.GetY()]
+        poin = ApplySnake(poi, grid, BuildSnake(12))
+        for i in range(len(poin['X'])):
+            point = ogr.Geometry(ogr.wkbPoint)
+            point.AddPoint(poin['X'][i], poin['Y'][i])
+            transF2 = osr.CoordinateTransformation(getSpatRefVec(b1), out_SPRef)
+            point.Transform(transF2)
+            out_feat.SetGeometry(point)
+            #out_feat.SetField(0, str(feat.GetField(id_fields)))
+            out_feat.SetField(0, feat.GetField(id_fields))
+            out_feat.SetField(1, i)
+            out_lyr.CreateFeature(out_feat)
+        feat = b1l.GetNextFeature()
+    else:
+        feat = b1l.GetNextFeature()
 
 b1l.ResetReading()
 shapeStor.Destroy()

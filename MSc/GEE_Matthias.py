@@ -16,9 +16,11 @@ print("Starting process, time: " +  starttime)
 print("")
 # ####################################### FILES AND FOLDER-PATHS ############################################## #
 root_folder = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/GIS_Data/TC_SC_squares/'
-shp = ogr.Open(root_folder + 'Combined_centerCoord_4326.shp')
-output = root_folder + 'Combined_centerCoord_4326_period2.csv'
+shp = ogr.Open(root_folder + 'Combined_20S_cont_gasp1_centerCoord_reproj_4326.shp')
+output = root_folder + 'Combined_20S_cont_gasp1_centerCoord_reproj_4326_p2.csv'
 # ####################################### SEARCH PARAMETERS ################################################### #
+# startDate = '2005-07-01'
+# endDate = '2008-10-01'
 startDate = '2010-07-01'
 endDate = '2013-10-01'
 # ####################################### FUNCTIONS ########################################################### #
@@ -91,7 +93,7 @@ valueList = []
 lyr = shp.GetLayer()
 coord = lyr.GetSpatialRef()
 nFeat = lyr.GetFeatureCount()
-feat = lyr.GetNextFeature()
+
 #while feat:
 for feat in tqdm(lyr):
 # Extract ID-Info from SHP-file and other informations
