@@ -1,7 +1,12 @@
 from FloppyToolZ.MasterFuncs import *
 
+# load plots and make to MODIS centers
+point_path = 'H:/Seafile/Uni_Life/CarbonPaper/GIS_Data/Plots/merge/posicion_parcelas_plus_only_new_ones_84.shp'
+refimg     = 'Y:/_students_data_exchange/FP_FP/RS_Data/MODIS/rasterized/Mod1.tiff'
+points_to_Center(point_path, refimg)
+
 # load points
-points = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/2nd_round/plot_coords/Combined_cont_gasp1_centerCoord_MODIS.shp'
+points = 'H:/Seafile/Uni_Life/CarbonPaper/2nd_round/plot_coords/posicion_parcelas_plus_only_new_ones_84_centerCoord_MODIS.shp'
 point  = ogr.Open(points, 0)
 poin   = point.GetLayer()
 # extract attribute table
@@ -36,7 +41,7 @@ for i in range(1,len(pod['X'])):
 
 
 df = pd.DataFrame(data=pod)
-df.to_csv('Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/2nd_round/plot_coords/test4.csv', sep=',',index=False)
+df.to_csv('H:/Seafile/Uni_Life/CarbonPaper/2nd_round/plot_coords/posicion_parcelas_plus_only_new_ones_84_centerCoord_MODIS_dups.csv', sep=',',index=False)
 
 # create an ordered shapefile
 
@@ -68,3 +73,5 @@ for in_feat in poin:
 poin.ResetReading()
 shapeStor.Destroy()
 del poin
+
+# then apply make_gee_point_file.py !!!!!

@@ -1,9 +1,9 @@
-Kfrom FloppyToolZ.Funci import *
+from FloppyToolZ.Funci import *
 
 
-file = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/2nd_round/plot_coords/Combined_cont_gasp1_centerCoord_MODIS_ordered_XY.shp'
+file = 'H:/Seafile/Uni_Life/CarbonPaper/2nd_round/plot_coords/posicion_parcelas_plus_only_new_ones_84_centerCoord_MODIS_ordered_XY.shp'
 id_fields = 'UniqueID'
-storpath = 'Y:/_students_data_exchange/FP_FP/Seafile/myLibrary/MSc/2nd_round/plot_coords'
+storpath = 'H:/Seafile/Uni_Life/CarbonPaper/2nd_round/plot_coords'
 
 grid = 10
 

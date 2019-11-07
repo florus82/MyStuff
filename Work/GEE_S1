@@ -1,0 +1,146 @@
+from FloppyToolZ.MasterFuncs import *
+import ee
+ee.Initialize()
+import pandas as pd
+import time
+
+# ####################################### SET TIME-COUNT ###################################################### #
+starttime = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
+print("--------------------------------------------------------")
+print("Starting process, time: " +  starttime)
+print("")
+
+
+points = '/home/florus/Seafile/Uni_Life/CarbonPaper/2nd_round/plot_coords/posicion_parcelas_plus_only_new_ones_84_centerCoord_MODIS_ordered_XY_snaked_10.shp'
+points_op = ogr.Open(points, 0)
+poi_lyr = points_op.GetLayer()
+
+# date subset
+start_dates = ['2017-08-15', '2017-11-15', '2018-02-15', '2018-05-15']
+end_dates = ['2017-11-14', '2018-02-14', '2018-05-14', '2018-08-14']
+
+
+# # define time func
+# def addTime(image):
+#     return (image.addBands(image.metadata('system:time_start')))
+
+# define extract function
+
+def sampler(image):
+
+    def set_date(f):
+
+        return f.set('image_date', image.date().format("YYYY-MM-dd"))
+
+    return image.sampleRegions(collection = fColl, scale = 10, geometries = True).map(set_date)
+
+
+# go over POINT_IDs
+ids = list(set([feat.GetField('POINT_ID') for feat in poi_lyr]))
+poi_lyr.ResetReading()
+
+
+polar = ['VV', 'VV', 'VH', 'VH', 'HV', 'HV', 'HH', 'HH']
+mode  = ['ASCENDING', 'DESCENDING', 'ASCENDING', 'DESCENDING', 'ASCENDING', 'DESCENDING', 'ASCENDING', 'DESCENDING']
+
+# loop over time periods
+for zz, per in enumerate(start_dates):
+    # loop over Point Cluster
+    for count, id in enumerate(ids):
+        print(id)
+        sub = [id, id]
+
+        poi_lyr.SetAttributeFilter("POINT_ID in {}".format(tuple(sub)))
+        # create a polygon from POINT_ID bounds in order to minimize created collections
+        x = []
+        y = []
+        for i, poi in enumerate(poi_lyr):
+            x.append(poi.geometry().GetX())
+            y.append(poi.geometry().GetY())
+        poi_lyr.ResetReading()
+        poly = ee.Geometry.Polygon([[min(x), min(y)], [min(x), max(y)], [max(x), max(y)], [max(x), min(y)], [min(x), min(y)]])
+
+        # create several small feature (so we can actually pull them with .getInfo()) collection from all points belonging to that POINT_ID
+        feat_list = []
+        feat_feat_list = []
+        for feat in poi_lyr:
+            feat_list.append(ee.Feature(ee.Geometry.Point(feat.geometry().GetX(), feat.geometry().GetY()),
+                                        {'POINT_ID': feat.GetField('POINT_ID'), 'Block_ID': feat.GetField('Block_ID')}))
+
+        for i in range(0, len(feat_list), 125):
+            feat_feat_list.append(feat_list[i:i+125])
+
+        featColl = []
+        for flist in feat_feat_list:
+            featColl.append(ee.FeatureCollection(ee.List(flist)))
+
+        # go over all imagecollections
+        for counti, poli in enumerate(polar):
+            print(poli)
+            print(mode[counti])
+
+            # imgcollT = imgcoll.map(addTime)
+
+            # output dict
+            k = ['x', 'y','time', 'val', 'Block_ID', 'POINT_ID', 'Mode', 'Polar']
+            v = [[] for _ in k]
+            res = dict(zip(k, v))
+
+            # img0 = s1_VV_aT.first()
+            # tt   = img0.reduceRegions(reducer = ee.Reducer.first(), collection = featColl, scale = 10).getInfo()
+            # tt['features'][0]['properties']
+
+            # # get the number of iamge collection
+            # imgL = imgcollT.toList(imgcollT.size())
+            # numS = imgcollT.size()
+            # numS = numS.getInfo()
+
+            # loop over small feature collections and set fColl (used inside sampler function)
+            for f in featColl:
+                fColl = f
+                procFlag = 0
+                try:
+                    imgcoll = ee.ImageCollection('COPERNICUS/S1_GRD'). \
+                        filterDate(per, end_dates[zz]). \
+                        filter(ee.Filter.listContains('transmitterReceiverPolarisation', poli)). \
+                        filter(ee.Filter.eq('instrumentMode', 'IW')). \
+                        filter(ee.Filter.eq('orbitProperties_pass', mode[counti])). \
+                        filterBounds(poly). \
+                        select(poli)
+                    aa = imgcoll.map(sampler)
+
+                except:
+                    time.sleep(1)
+                    print("--> GEE timed out, idle for 1min, ", time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()))
+                    procFlag = 1
+                bb = aa.flatten()
+                cc = bb.getInfo()
+                cc = cc['features']
+
+                for entry in cc:
+                    res['x'].append(entry['geometry']['coordinates'][0])
+                    res['y'].append(entry['geometry']['coordinates'][1])
+                    res['time'].append(entry['properties']['image_date'])
+                    res['val'].append(entry['properties'][list(entry['properties'].keys())[2]])
+                    res['Block_ID'].append(entry['properties']['Block_ID'])
+                    res['POINT_ID'].append(entry['properties']['POINT_ID'])
+                    res['Mode'].append(mode[counti])
+                    res['Polar'].append(poli)
+
+
+            df = pd.DataFrame(data=res)
+            df.to_csv('/home/florus/Seafile/Uni_Life/CarbonPaper/2nd_round/extracts/from_ee/S1/' + id + '_' + poli + '_' + mode[counti] + '_' + per + '_' + end_dates[zz] + '.csv', sep=',', index=False)
+            poi_lyr.SetAttributeFilter(None)
+    # ##################################### END TIME-COUNT AND PRINT TIME STATS################################## #
+    print("")
+    endtime = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
+    print("--------------------------------------------------------")
+    print("--------------------------------------------------------")
+    print("start: " + starttime)
+    print("end: " + endtime)
+    print("")
+
+
+        # coordsImage = ee.Image.pixelLonLat().reproject(test.projection())
+        # jointest = coordsImage.addBands(test)
+        # coordsList = jointest.reduceRegion({'reducer': ee.Reducer.toList(3), 'geometry': poly}).values().get(0)
