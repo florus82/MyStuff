@@ -10,19 +10,27 @@ print("Starting process, time: " + starttime)
 print("")
 
 # ##################  load any MODIS tile from study area to get projection info
-modfolder = '/home/florus/MSc/RS_Data/MODIS/raw2'
+modfolder = 'E:/Florian/MSc_outside_Seafile/RS_Data/MODIS/raw/raw1'
 modHDF    = getFilelist(modfolder, '.hdf')
+
+extr = getFilelist('K:/Seafile/Uni_Life/CarbonPaper/Extracts/Parallel', '.csv')
+extr = [e.split('/')[-1].split('.')[0].split('ContGaps1')[-1] for e in extr]
+modHDF = [m for m in modHDF if '_'.join(m.split('/')[-1].split('hdf')[0].split('.')[1:5]) not in extr]
+
+
+#
 modi  = gdal.Open(modHDF[0])
 modis = gdal.Open(list(modi.GetMetadata('SUBDATASETS').values())[0])
 modis_spatRef = getSpatRefRas(modis)
 
 # ##################  reproject plot coordinates to MODIS
-# reprojShapeSpatRefVec('/home/florus/MSc/GIS_Data/Plots/gasparri/parcelas_uniqID.shp', modis_spatRef)
+# reprojShapeSpatRefVec('K:/Seafile/Uni_Life/CarbonPaper/GIS_Data/Plots/merge/Combined_20S_cont_gasp1.shp', modis_spatRef)
 # reprojShapeSpatRefVec('/home/florus/MSc/GIS_Data/Plots/conti/Conti-etal_BiomassData_withInfo_modID_and_BM_uniqID.shp', modis_spatRef)
 
 # import shapefiles with plot coordinates
-parc_XY    = getXYfromShape('/home/florus/MSc/GIS_Data/Plots/conti/Conti-etal_BiomassData_withInfo_modID_and_BM_uniqID_reproj_unnamed.shp')
-parc_Attri = getAttributesALL('/home/florus/MSc/GIS_Data/Plots/conti/Conti-etal_BiomassData_withInfo_modID_and_BM_uniqID_reproj_unnamed.shp')
+shp_file = 'K:/Seafile/Uni_Life/CarbonPaper/2nd_round/plot_coords/posicion_parcelas_plus_only_new_ones_84_centerCoord_MODIS_reproj_unnamed.shp'
+parc_XY    = getXYfromShape(shp_file)
+parc_Attri = getAttributesALL(shp_file)
 
 # ##################  transform the coordinates into cell dimensions (all tiles are equal, therefore once is enough)
 k = ['col', 'row']
@@ -99,13 +107,13 @@ def MODext(modHDF, bands, cells, res):
         print(i)
 
     df    = pd.DataFrame(data = res)
-    df.to_csv('/home/florus/MSc/ContiExtr/ContiBM' + '_'.join(modHDF.split('.')[1:5]) + '.csv', sep=',',index=False)
+    df.to_csv('K:/Seafile/Uni_Life/CarbonPaper/Extracts/Parallel/Dante' + '_'.join(modHDF.split('.')[1:5]) + '.csv', sep=',',index=False)
 
 
 # ################### parallel
 
 joblist = [[scene, bands, cells, res] for scene in modHDF]
-Parallel(n_jobs=3)(delayed(MODext)(i[0], i[1], i[2], i[3]) for i in joblist)
+Parallel(n_jobs=55)(delayed(MODext)(i[0], i[1], i[2], i[3]) for i in joblist)
 
 
 
