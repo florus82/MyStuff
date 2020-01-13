@@ -1,0 +1,196 @@
+from FloppyToolZ.Funci import *
+import time
+
+# set paths
+tile_path = 'Y:/FP_MB/CHACO_extent_tiles_9.shp'
+VV_path   = r'X:\MSc_outside_Seafile\RS_Data\S1\after_preprocess\VV'
+VH_path   = r'X:\MSc_outside_Seafile\RS_Data\S1\after_preprocess\VH'
+pol_path  = r'X:\MSc_outside_Seafile\RS_Data\S1\after_preprocess\scene_polys'
+metr_path = r'X:\MSc_outside_Seafile\RS_Data\S1\after_preprocess\Metrics'
+# set variables
+drivESRI = ogr.GetDriverByName('ESRI Shapefile')
+drivMemVec = ogr.GetDriverByName('Memory')
+drivMemRas = gdal.GetDriverByName('MEM')
+gtiff_driver = gdal.GetDriverByName('GTiff')
+
+time_start = 20180901
+time_end = 20190831
+
+# ############################# create empty shapefile for storing scene extent polygons #########################
+# def sceneFinder_for_tiling(scenefolder, outFolder, outFileName, tilingShape):
+#     driver = ogr.GetDriverByName('ESRI Shapefile')
+#     shapeStor = driver.CreateDataSource(outFolder)
+#     out_lyr = shapeStor.CreateLayer(outFileName, getSpatRefVec(tilingShape), ogr.wkbPolygon)
+#
+#     # create Fields
+#     #FID
+#     id_fld = ogr.FieldDefn('FID', ogr.OFTInteger)
+#     id_fld.SetWidth(10)
+#     id_fld.SetPrecision(1)
+#     out_lyr.CreateField(id_fld)
+#
+#     # Scene Name
+#     nam_fld = ogr.FieldDefn('Scene', ogr.OFTString)
+#     nam_fld.SetWidth(50)
+#     out_lyr.CreateField(nam_fld)
+#
+#     out_feat = ogr.Feature(out_lyr.GetLayerDefn())
+#
+#     # ############################# create polygons for S1 tiles (VV is enough as identical extent as respective VHs) #########################
+#     files = getFilelist(scenefolder, '.tif')
+#     # files = files[65:75]
+#     squareList = []
+#     sceneList = []
+#     for i, file in enumerate(files):
+#         print(i)
+#         sceneList.append(file.split('/')[-1].split('.')[0])
+#         fil = gdal.Open(file, gdal.GA_ReadOnly)
+#         gt  =fil.GetGeoTransform()
+#         #load raster
+#         ras = fil.GetRasterBand(1).ReadAsArray()
+#         # get corners with of data space
+#         r, c = np.where(ras[:,:] > 0)
+#         upper_x1 = gt[0] + (c[0]-1)*gt[1]
+#         upper_y1 = gt[3] + (r[0]-1)*gt[5]
+#         upper_x2 = upper_x1 + (np.where(ras[r[0], :] > 0)[0].shape[0]-1)*gt[1]
+#         upper_y2 = upper_y1
+#
+#         right_x1 = gt[0] + (np.max(c)+1)*gt[1]
+#         right_y1 = gt[3] + (r[np.where(c == np.max(c))[0]][0])*gt[5]
+#         right_x2 = right_x1
+#         right_y2 = right_y1 + (r[np.where(c == np.max(c))[0]].shape[0]+1)*gt[5]
+#
+#         lower_x1 = gt[0] + (c[np.where(r == np.flip(r)[0])[0][0]])*gt[1]
+#         lower_y1 = gt[3] + (np.flip(r)[0]+2)*gt[5]
+#         lower_x2 = lower_x1 + (np.where(r == np.flip(r)[0])[0].shape[0])*gt[1]
+#         lower_y2 = lower_y1
+#
+#         left_x1 = gt[0] + (np.min(c)-1)*gt[1]
+#         left_y1 = gt[3] + (r[np.where(c == np.min(c))[0]][0]+2)*gt[5]
+#         left_x2 = left_x1
+#         left_y2 = left_y1 + (r[np.where(c == np.min(c))[0]].shape[0])*gt[5]
+#
+#         ring = ogr.Geometry(ogr.wkbLinearRing)
+#         ring.AddPoint(upper_x1, upper_y1)
+#         ring.AddPoint(upper_x2, upper_y2)
+#         ring.AddPoint(right_x1, right_y1)
+#         ring.AddPoint(right_x2, right_y2)
+#         ring.AddPoint(lower_x2, lower_y2)
+#         ring.AddPoint(lower_x1, lower_y1)
+#         ring.AddPoint(left_x2, left_y2)
+#         ring.AddPoint(left_x1, left_y1)
+#
+#         square = ogr.Geometry(ogr.wkbPolygon)
+#         square.AddGeometry(ring)
+#         square.CloseRings()
+#         squareList.append(square)
+#
+#     # ############################# store polygons in empty shapefile #########################
+#     for j, squa in enumerate(squareList):
+#         print(j)
+#         out_feat.SetGeometry(squa)
+#         out_feat.SetField(0, j)
+#         out_feat.SetField(1, sceneList[j])
+#         out_lyr.CreateFeature(out_feat)
+#     shapeStor.Destroy()
+#
+# sceneFinder_for_tiling(VV_path, pol_path, 'VV_complete', tile_path)
+# ############################# load tiling system and check for overlap with scenes #########################
+# read in scene polygons
+pol = ogr.Open(pol_path + '/VV_Polygons.shp')
+pol_lyr = pol.G
+etLayer()
+# read in tiling system
+tiles = ogr.Open(tile_path)
+t_lyr = tiles.GetLayer()
+t_lyr.SetAttributeFilter('Id_long = 43408')
+
+# ############################# loop over tiles to create joblist #########################
+# for tile in t_lyr:
+# build a check if this is actually CHACO Y !!!!!!!!!!!
+tile = t_lyr.GetNextFeature()
+geom = tile.geometry() # load geometry
+
+# create polygon dummy for rasterizing
+shpMem = drivMemVec.CreateDataSource('')
+shpMem_lyr = shpMem.CreateLayer('shpMem', getSpatRefVec(tile), geom_type=ogr.wkbPolygon)
+shpMem_lyr_defn = shpMem_lyr.GetLayerDefn()
+shpMem_feat = ogr.Feature(shpMem_lyr_defn)
+shpMem_feat.SetGeometry(geom)
+shpMem_lyr.CreateFeature(shpMem_feat)
+
+# intersect
+sceneCont = []
+pol_lyr.SetSpatialFilter(geom)
+for p in pol_lyr:
+    sceneCont.append(p.GetField('Scene'))
+    print(p.GetField('Scene'))
+pol_lyr.SetSpatialFilter(None)
+pol_lyr.ResetReading()
+
+print(len(sceneCont))
+
+arrList = []
+# loop over polarizations
+#for polar in [VV_path, VH_path]:
+    polar = VV_path  # remove!!!!!!!!!!!!!!!!!!
+    # loop over scenes in container
+    for scene in sceneCont:
+        #scene = sceneCont[0] # remove !!!!!!!!!!!!!!!!!!!!
+        year = int(scene.split('_')[4][0:4])*10000
+        month = int(scene.split('_')[4][4:6])*100
+        day = int(scene.split('_')[4][6:8])
+        if (year + month + day) >= time_start and (year + month + day) <= time_end:
+            rasti = gdal.Open(polar + '/' + scene + '.tif')
+            gt = rasti.GetGeoTransform()
+            # build empty raster based on create memory tile object
+            x_min, x_max, y_min, y_max = shpMem_lyr.GetExtent()
+            x_res = int((x_max - x_min) / gt[1]) + 1
+            y_res = int((y_max - y_min) / gt[1]) + 1
+            shpMem_asRaster = drivMemRas.Create('', x_res, y_res, rasti.GetRasterBand(1).DataType)
+            shpMem_asRaster.SetProjection(str(getSpatRefRas(rasti)))
+            shpMem_asRaster.SetGeoTransform((x_min, gt[1], 0, y_max, 0, gt[5]))
+            shpMem_asRaster_band = shpMem_asRaster.GetRasterBand(1)
+            shpMem_asRaster_band.SetNoDataValue(0)
+            gdal.RasterizeLayer(shpMem_asRaster, [1], shpMem_lyr, burn_values=[1])
+            shpMem_array = np.array(shpMem_asRaster_band.ReadAsArray())
+
+            rasMem = drivMemRas.Create('', shpMem_asRaster.RasterXSize, shpMem_asRaster.RasterYSize, 1, rasti.GetRasterBand(1).DataType)
+            rasMem.SetGeoTransform(shpMem_asRaster.GetGeoTransform())
+            rasMem.SetProjection(shpMem_asRaster.GetProjection())
+            gdal.ReprojectImage(rasti, rasMem, rasti.GetProjection(), shpMem_asRaster.GetProjection(), gdal.GRA_NearestNeighbour)
+            rasMem_array = np.array(rasMem.GetRasterBand(1).ReadAsArray())
+            rasMem_array[rasMem_array<0] = 0
+            arrList.append(rasMem_array)
+            # out_ds = gtiff_driver.Create(metr_path + '/' + scene + '.tif', x_res, y_res, 1,
+            #                              rasti.GetRasterBand(1).DataType)
+            # out_gt = rasMem.GetGeoTransform()
+            # out_ds.SetGeoTransform(out_gt)
+            # out_ds.SetProjection(str(getSpatRefRas(rasti)))
+            # out_ds.GetRasterBand(1).WriteArray(rasMem_array)
+            # out_ds.GetRasterBand(1).SetNoDataValue(-9999)
+            # del out_ds
+        else:
+            continue
+    # calculate metrics: mean, median, 5, 25, 75, 95th, std
+    stack = np.dstack(arrList)
+    #meanL, medianL, q5L, q25L, q75L, q95L, stdL = [], [], [], [], [], [], []
+    metrL = []
+    metrL.append(np.nanmean(stack, 2))
+    metrL.append(np.nanmedian(stack, 2))
+    metrL.append(np.nanquantile(stack, 0.05, axis=2))
+    metrL.append(np.nanquantile(stack, 0.25, axis=2))
+    metrL.append(np.nanquantile(stack, 0.75, axis=2))
+    metrL.append(np.nanquantile(stack, 0.95, axis=2))
+    metrL.append(np.nanstd(stack, axis=2))
+    metrL.append(np.count_nonzero(stack, 2))
+
+
+    out_ds = gtiff_driver.Create(metr_path + '/test4.tif', x_res, y_res, len(metrL), rasti.GetRasterBand(1).DataType)
+    out_gt = rasMem.GetGeoTransform()
+    out_ds.SetGeoTransform(out_gt)
+out_ds.SetProjection(str(getSpatRefRas(rasti)))
+    for i in range(0, len(metrL)):
+        out_ds.GetRasterBand(i+1).WriteArray(metrL[i])
+        out_ds.GetRasterBand(i+1).SetNoDataValue(-9999)
+    del out_ds
