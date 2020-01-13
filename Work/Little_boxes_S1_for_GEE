@@ -1,0 +1,119 @@
+from FloppyToolZ.Funci import *
+
+def shrinker(envelope, shrinkfactor):
+    minX = envelope[0]
+    minY = envelope[2]
+    maxX = envelope[1]
+    maxY = envelope[3]
+
+    offX = (minX - maxX) / shrinkfactor
+    offY = (minY - maxY) / shrinkfactor
+
+    newX = []
+    for i in np.arange(maxX, minX, offX):
+        newX.append(i)
+    newX.append(newX[-1] + offX)
+    newX = newX[::-1]
+
+    newY = []
+    for i in np.arange(maxY, minY, offY):
+        newY.append(i)
+    newY.append(newY[-1] + offY)
+
+    upLX, upLY, upRX, upRY, loRX, loRY, loLX, loLY = [], [], [], [], [], [], [], []
+
+    for i in range(len(newY) - 1):
+        for j in range(len(newX) - 1):
+            upLX.append(newX[j])
+            upLY.append(newY[i])
+
+            upRX.append(newX[j+1])
+            upRY.append(newY[i])
+
+            loRX.append(newX[j+1])
+            loRY.append(newY[i+1])
+
+            loLX.append(newX[j])
+            loLY.append(newY[i+1])
+
+    squareList = []
+
+    for k in range(len(upLX)):
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        ring.AddPoint(upLX[k], upLY[k])
+        ring.AddPoint(upRX[k], upRY[k])
+        ring.AddPoint(loRX[k], loRY[k])
+        ring.AddPoint(loLX[k], loLY[k])
+
+        square = ogr.Geometry(ogr.wkbPolygon)
+        square.AddGeometry(ring)
+        square.CloseRings()
+        squareList.append(square)
+
+    return squareList
+
+
+# disaggregate big squares into shrinki*shrinki litte squares
+shrinki = 4
+
+# import big squares
+bigSQ = ogr.Open('S:/_LANDSAT/Processing_Frame_Tiles.shp')
+bigSQ_lyr = bigSQ.GetLayer()
+# for training purposes only
+# ShapeKiller('H:/temp/CHACO_extent_tiles_9.shp')
+
+
+# create empty dataset
+driver = ogr.GetDriverByName('ESRI Shapefile')
+shapeStor = driver.CreateDataSource('H:/temp')
+out_lyr = shapeStor.CreateLayer('CHACO_extent_tiles_' + str(shrinki**2), getSpatRefVec(bigSQ), ogr.wkbPolygon)
+
+# create Fields
+id_fld = ogr.FieldDefn('Id', ogr.OFTInteger)
+id_fld.SetWidth(10)
+id_fld.SetPrecision(1)
+out_lyr.CreateField(id_fld)
+
+id_fld = ogr.FieldDefn('Id_long', ogr.OFTReal)
+id_fld.SetWidth(10)
+id_fld.SetPrecision(2)
+out_lyr.CreateField(id_fld)
+
+id_fld = ogr.FieldDefn('CHACO_YN', ogr.OFTInteger)
+id_fld.SetWidth(5)
+id_fld.SetPrecision(1)
+out_lyr.CreateField(id_fld)
+
+# create feature to burn stuff into
+out_feat = ogr.Feature(out_lyr.GetLayerDefn())
+
+shapeList = []
+IDs = []
+ID_long =[]
+CHACO_YN = []
+
+# loop over big squares and create small ones
+for z, feat in enumerate(bigSQ_lyr):
+    #feat = bigSQ_lyr.GetFeature(1)
+    #print(z)
+    geom = feat.geometry()
+    envlop = geom.GetEnvelope()
+
+    shapeList.append(shrinker(envlop, shrinki))
+    id = np.repeat(feat.GetField('Id'), shrinki ** 2)
+    IDs.append(id.tolist())
+    ID_long.append([(feat.GetField('Id') * 100) + i for i in range(1, (shrinki**2)+1,1)])
+    YN = np.repeat(feat.GetField('CHACO_YN'), shrinki ** 2)
+    CHACO_YN.append(YN.tolist())
+
+for i in range(len(shapeList)):
+    print(i)
+    for j in range(shrinki**2):
+        print(j)
+        out_feat.SetGeometry(shapeList[i][j])
+        out_feat.SetField(0, IDs[i][j])
+        out_feat.SetField(1, ID_long[i][j])
+        out_feat.SetField(2, CHACO_YN[i][j])
+        out_lyr.CreateFeature(out_feat)
+
+shapeStor.Destroy()
